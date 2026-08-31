@@ -97,7 +97,24 @@
             font-size: 0.9rem;
             border: 1px dashed #334155;
         }
-
+        .btn { 
+            width: 80%;
+            max-width: 400px;
+            padding: 18px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            text-decoration: none; 
+            font-size: 1.1rem; 
+            transition: all 0.3s ease; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .btn-home { 
+            background: linear-gradient(135deg, #00f2ff, #0066ff); 
+            color: white; 
+            border: 1px solid var(--neon-blue);
+        }
         /* BOTONES DE ACCIÓN */
         .btn-action {
             width: 100%;
@@ -139,7 +156,8 @@
     
     <!-- ⚡ EL MENSAJE DE BIENVENIDA EN INGLÉS -->
     <div class="welcome-banner">
-        <a href="index.html">HOME</a><br />
+        <a href="index.html" class="btn btn-home">HOME</a>
+        <br />
         <h1>🤖 Git BOT ACTIVATED 🤖</h1>
         <p>"Please, to start GIT BOT deposit $20 - $100 - $1000<br>Let's go Bitcoiners! 🚀⚡"</p>
     </div>
