@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 RoboMoney - 🚀</title>
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-green: #39ff14;
+            --dark-space: #060b19;
+            --panel-bg: #111930;
+        }
+        body { 
+            font-family: 'Courier New', Courier, monospace; 
+            background-color: var(--dark-space); 
+            color: #e2e8f0; 
+            text-align: center; 
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+        .robot-container {
+            max-width: 750px;
+            margin: auto;
+            background: var(--panel-bg);
+            padding: 40px;
+            border-radius: 20px;
+            border: 3px solid var(--neon-blue);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+            position: relative;
+        }
+        h1 { 
+            color: var(--neon-blue); 
+            font-size: 2.8rem; 
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px var(--neon-blue);
+        }
+        .bip-bop {
+            font-size: 4rem;
+            animation: float 3s ease-in-out infinite;
+            display: inline-block;
+        }
+        .bocadillo {
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px auto;
+            border-left: 5px solid var(--neon-green);
+            font-style: italic;
+            color: var(--neon-green);
+            max-width: 90%;
+            text-shadow: 0 0 5px rgba(57, 255, 20, 0.5);
+        }
+        p { color: #94a3b8; font-size: 1.1rem; line-height: 1.6; }
+        .grid-tech {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 25px 0;
+            text-align: left;
+        }
+        /* 🔥 AÑADE ESTA NUEVA REGLA JUSTO ABAJO PARA ARREGLAR CELULARES: */
+@media (max-width: 600px) {
+    .grid-tech {
+        grid-template-columns: 1fr; /* Cambia a una sola columna en pantallas móviles */
+    }
+    .robot-container {
+        padding: 20px; /* Reduce los márgenes laterales en el teléfono */
+    }
+    h1 {
+        font-size: 1.8rem; /* Ajusta el título para que no se corte en smartphones */
+    }
+    .btn {
+        width: 100%; /* El botón ocupa todo el ancho cómodo del celular */
+    }
+        /* Cuadrícula de tarjetas con efectos de neón */
+.grid-tech {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+/* Estilo Base de las Tarjetas Robóticas con bordes de neón */
+.tech-card {
+    background: #141c30;
+    padding: 20px;
+    border-radius: 10px;
+    position: relative;
+    color: #e2e8f0;
+    line-height: 1.5;
+}
+
+/* Asignación de colores de neón independientes y animaciones de parpadeo */
+.tech-card:nth-child(1) {
+    border: 2px solid #00f2ff;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+    animation: glitch-neon-blue 4s infinite alternate;
+}
+.tech-card:nth-child(2) {
+    border: 2px solid #39ff14;
+    box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
+    animation: glitch-neon-green 5s infinite alternate;
+}
+.tech-card:nth-child(3) {
+    border: 2px solid #ff007f;
+    box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
+    animation: glitch-neon-pink 3.5s infinite alternate;
+}
+.tech-card:nth-child(4) {
+    border: 2px solid #ffaa00;
+    box-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
+    animation: glitch-neon-orange 4.5s infinite alternate;
+}
+
+/* --- ANIMACIONES DE PARPADEO (EFECTO CIRCUITO FALLANDO) --- */
+@keyframes glitch-neon-blue {
+    0%, 93%, 95%, 100% { box-shadow: 0 0 12px rgba(0, 242, 255, 0.4); opacity: 1; }
+    94%, 96% { box-shadow: 0 0 2px rgba(0, 242, 255, 0.1); opacity: 0.85; border-color: rgba(0, 242, 255, 0.4); }
+}
+@keyframes glitch-neon-green {
+    0%, 88%, 91%, 100% { box-shadow: 0 0 12px rgba(57, 255, 20, 0.4); opacity: 1; }
+    89%, 92% { box-shadow: 0 0 2px rgba(57, 255, 20, 0.1); opacity: 0.9; border-color: rgba(57, 255, 20, 0.3); }
+}
+@keyframes glitch-neon-pink {
+    0%, 95%, 97%, 100% { box-shadow: 0 0 12px rgba(255, 0, 127, 0.4); opacity: 1; }
+    96%, 98% { box-shadow: 0 0 2px rgba(255, 0, 127, 0.1); opacity: 0.8; border-color: rgba(255, 0, 127, 0.3); }
+}
+@keyframes glitch-neon-orange {
+    0%, 91%, 94%, 100% { box-shadow: 0 0 12px rgba(255, 170, 0, 0.4); opacity: 1; }
+    92%, 95% { box-shadow: 0 0 2px rgba(255, 170, 0, 0.1); opacity: 0.85; border-color: rgba(255, 170, 0, 0.3); }
+}
+
+/* 🔥 OPTIMIZACIÓN RESPONSIVA COMPLETA PARA MÓVILES (TELÉFONOS) 🔥 */
+@media (max-width: 600px) {
+    .grid-tech {
+        grid-template-columns: 1fr; /* Una sola fila hacia abajo en el celular */
+        gap: 15px;
+    }
+    .robot-container {
+        padding: 25px 15px; /* Ajusta los márgenes para pantallas pequeñas */
+        border-width: 2px;
+    }
+    h1 {
+        font-size: 1.9rem; /* El título se escala de forma perfecta */
+    }
+    .tech-card {
+        padding: 15px; /* Las tarjetas se vuelven más compactas y legibles */
+        font-size: 0.95rem;
+    }
+    .btn {
+        width: 100%; /* Botones de descarga grandes y fáciles de pulsar en pantallas táctiles */
+        box-sizing: border-box;
+    }
+        .tech-card strong { color: var(--neon-blue); }
+        .btn-group { 
+            margin-top: 40px; 
+            display: flex; 
+            flex-direction: column;
+            gap: 15px; 
+            align-items: center;
+        }
+        .btn { 
+            width: 80%;
+            max-width: 400px;
+            padding: 18px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            text-decoration: none; 
+            font-size: 1.1rem; 
+            transition: all 0.3s ease; 
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        }
+        .btn-win { 
+            background: linear-gradient(135deg, #00f2ff, #0066ff); 
+            color: white; 
+            border: 1px solid var(--neon-blue);
+        }
+        .btn-win:hover { 
+            transform: scale(1.03); 
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+        .btn-lin { 
+            background: linear-gradient(135deg, #39ff14, #059669); 
+            color: #060b19; 
+            border: 1px solid var(--neon-green);
+        }
+        .btn-lin:hover { 
+            transform: scale(1.03); 
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="robot-container">
+        <div class="bip-bop">🤖</div>
+        <h1>ROBO-BOT🚀MONEY v1.0</h1>
+        
+        <div class="bocadillo">
+            "¡BIP BOP! Humano, dame tus tramos de $20 USD. Yo los haré ciclar en el mercado infinito, guardaré tu botín en Bitcoin y volveré a la fila antes de que digas 'Blockchain'. ¡La escalera eléctrica nunca duerme!"
+        </div>
+
+        <p>Bienvenido al protocolo de trading automatizado multi-fila. Ejecuta este software de forma 100% local en tu ordenador sin entregar tus llaves API a servidores de terceros.</p>
+        
+        <div class="grid-tech">
+            <div class="tech-card">⚡ <strong>Efecto FIFO:</strong> Tus posiciones se empujan orgánicamente con la volatilidad.</div>
+            <div class="tech-card">🔒 <strong>Hold Blindado:</strong> Las ganancias se convierten y guardan directo en Bitcoin.</div>
+            <div class="tech-card">🚦 <strong>Multifila Activa:</strong> Controla BTC, BNB, ETH, SOL, TRX, HBAR y WLFI a la vez.</div>
+            <div class="tech-card">🛡️ <strong>Cero Comisiones:</strong> Es tu bot, corre en tu máquina, las ganancias son tuyas.</div>
+        </div>
+
+    <div class="container">
+        <h1>⚡ Bot-Money 🚀 BULL RUN ⚡</h1>
+        <p>Automatiza tu estrategia de trading cíclico multi-fila en Binance y Bybit. Invierte en tramos fijos de $20, acumula HOLD permanente en tus activos favoritos y automatiza tus recompras de forma indefinida.</p><br />
+        ¡NO KYC - do not share personal data!
+        <span class="badge">Versión Actual: v1.0.0 (Estable)</span>
+        
+        <div class="btn-group">
+            <a href="
+            " class="btn btn-win">📥 Descargar para Windows (.exe)</a>
+            <a href="
+            " class="btn btn-lin">📥 Descargar para Linux (Binario)</a>
+        </div>
+    </div>
+</body>
+</html>
