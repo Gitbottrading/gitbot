@@ -97,10 +97,57 @@
             font-size: 0.9rem;
             border: 1px dashed #334155;
         }
-        .contenedor {
+        /* Registramos la propiedad para poder animar el ángulo del degradado */
+@property --angulo {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.contenedor {
   display: flex;
-  justify-content: flex-start; /* Alinea los elementos a la izquierda */
-         }
+  justify-content: flex-start;
+}
+
+.boton-luminoso {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px; /* Este padding define el grosor de la luz del borde */
+  text-decoration: none;
+  border-radius: 10px;
+  overflow: hidden;
+  /* Creamos el fondo con el degradado giratorio */
+  background-image: conic-gradient(from var(--angulo), transparent 70%, #00f2fe, #4facfe, transparent);
+  animation: girar 2s linear infinite;
+}
+
+/* El span cubre el fondo del botón para dejar visible solo el borde luminoso */
+.boton-luminoso span {
+  display: inline-block;
+  background-color: #1a1a1a; /* Color de fondo interno del botón */
+  color: white;
+  padding: 10px 25px;
+  border-radius: 8px; /* Ligeramente menor que el contenedor para encajar bien */
+  font-family: sans-serif;
+  font-weight: bold;
+  transition: background 0.3s;
+}
+
+/* Efecto al pasar el mouse por encima */
+.boton-luminoso:hover span {
+  background-color: #2a2a2a;
+}
+
+/* Animación que cambia el ángulo de la luz */
+@keyframes girar {
+  0% {
+    --angulo: 0deg;
+  }
+  100% {
+    --angulo: 360deg;
+  }
         .btn { 
             width: 80%;
             max-width: 400px;
