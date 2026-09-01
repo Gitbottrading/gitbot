@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -40,7 +40,7 @@
 
     .ticker-wrapper {
       display: inline-flex;
-      animation: tickerMove 25s linear infinite;
+      animation: tickerMove 35s linear infinite; /* Un poco más lento para leer los nuevos activos */
       gap: 50px;
       padding-right: 50px;
     }
@@ -189,7 +189,7 @@
   <!-- Ticker Tape Desplazándose de Izquierda a Derecha -->
   <div class="ticker-tape">
     <div class="ticker-wrapper" id="ticker-content">
-      <!-- El contenido se duplica vía JS para crear el bucle infinito perfecto -->
+      <!-- El contenido se inyecta y clona dinámicamente vía JS -->
     </div>
   </div>
 
@@ -209,33 +209,36 @@
     </div>
 
     <div class="status-banner">
-      🎢 Bull Mode: Active
+      🎢 Escalator Mode: Active
     </div>
 
   </div>
 
   <!-- --- SCRIPTS EN VIVO --- -->
   <script>
-    // Valores base en tiempo real fijados según mercado actual (2026)
+    // Configuración y Precios base en tiempo real actualizados
     const cryptoData = {
-      BTC: { price: 77427.38, upProb: 0.75, maxUp: 250, maxDown: 45 },
-      BNB: { price: 680.29, upProb: 0.70, maxUp: 3.5, maxDown: 0.9 },
-      WLFI: { price: 0.0574, upProb: 0.65, maxUp: 0.002, maxDown: 0.0005 },
-      USDT: { price: 0.9995, upProb: 0.50, maxUp: 0.0003, maxDown: 0.0003 } // Stablecoin vinculada a USD
+      BTC:  { price: 77427.38, upProb: 0.75, maxUp: 250,    maxDown: 45 },
+      ETH:  { price: 2406.98,  upProb: 0.72, maxUp: 12,     maxDown: 3.2 },
+      SOL:  { price: 100.04,   upProb: 0.74, maxUp: 0.95,   maxDown: 0.22 },
+      BNB:  { price: 680.29,   upProb: 0.70, maxUp: 3.5,    maxDown: 0.9 },
+      TRX:  { price: 0.3250,   upProb: 0.68, maxUp: 0.004,  maxDown: 0.001 },
+      WLFI: { price: 0.0574,   upProb: 0.65, maxUp: 0.002,  maxDown: 0.0005 },
+      USDT: { price: 0.9995,   upProb: 0.50, maxUp: 0.0003, maxDown: 0.0003 }
     };
 
-    // Renderizar e iniciar la cinta (ticker tape)
     const tickerContainer = document.getElementById('ticker-content');
     
+    // Función para renderizar el html del ticker
     function generateTickerHTML() {
       return Object.keys(cryptoData).map(symbol => {
         let displayPrice = cryptoData[symbol].price.toLocaleString('en-US', {
           style: 'currency', 
           currency: 'USD',
-          minimumFractionDigits: symbol === 'WLFI' || symbol === 'USDT' ? 4 : 2
+          minimumFractionDigits: (symbol === 'WLFI' || symbol === 'USDT' || symbol === 'TRX') ? 4 : 2
         });
         return `
-          <div class="crypto-item" id="ticker-${symbol}">
+          <div class="crypto-item">
             <span class="symbol">🔹 ${symbol}/USD:</span>
             <span class="value" id="val-${symbol}">${displayPrice}</span>
           </div>
@@ -243,41 +246,43 @@
       }).join('');
     }
 
-    // Duplicamos el set de datos para lograr una animación fluida infinita sin cortes
-    tickerContainer.innerHTML = generateTickerHTML() + generateTickerHTML() + generateTickerHTML();
+    // Copiamos la cadena de texto tres veces para cubrir toda la pantalla del bucle infinito sin saltos
+    const tickerSet = generateTickerHTML();
+    tickerContainer.innerHTML = tickerSet + tickerSet + tickerSet;
 
-    // Actualizador en tiempo real
+    // Actualizador de ticks del mercado por segundo
     function updateMarketTicks() {
       Object.keys(cryptoData).forEach(symbol => {
         const coin = cryptoData[symbol];
         
-        // Simular movimiento según su volatilidad algorítmica
+        // Simular fluctuación alcista controlada
         const isUp = Math.random() < coin.upProb;
         const delta = isUp ? (Math.random() * coin.maxUp) : -(Math.random() * coin.maxDown);
         coin.price += delta;
 
-        // Mantener a USDT flotando orgánicamente muy cerca de $1.0000
+        // Anclaje técnico de seguridad para la Stablecoin USDT
         if (symbol === 'USDT') {
           if (coin.price > 1.0005) coin.price = 1.0001;
           if (coin.price < 0.9990) coin.price = 0.9994;
         }
 
-        // Formatear valor
+        // Formatear el precio según el tipo de moneda
         let formatted = coin.price.toLocaleString('en-US', {
           style: 'currency',
           currency: 'USD',
-          minimumFractionDigits: symbol === 'WLFI' || symbol === 'USDT' ? 4 : 2
+          minimumFractionDigits: (symbol === 'WLFI' || symbol === 'USDT' || symbol === 'TRX') ? 4 : 2
         });
 
-        // Actualizar en todos los nodos repetidos de la cinta
+        // Actualizar todos los clones renderizados en la marquesina superior
         const elementInstances = document.querySelectorAll(`#val-${symbol}`);
         elementInstances.forEach(el => { el.innerText = formatted; });
 
-        // Si es Bitcoin, actualiza también el panel gigante central de la vela
+        // Si es Bitcoin, replicar el tick en la interfaz HUD principal de la vela
         if (symbol === 'BTC') {
           const mainPriceNode = document.getElementById('live-price');
           mainPriceNode.innerText = formatted;
 
+          // Flash reactivo ante subidas violentas
           if (isUp && delta > 120) {
             mainPriceNode.classList.add('price-pump-flash');
             setTimeout(() => mainPriceNode.classList.remove('price-pump-flash'), 120);
@@ -286,10 +291,11 @@
       });
     }
 
-    // El mercado ejecuta cambios vivos cada 1 segundo
+    // Actualización global del ecosistema cripto cada 1000ms
     setInterval(updateMarketTicks, 1000);
   </script>
 
 </body>
 </html>
+
 
