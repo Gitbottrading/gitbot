@@ -4,298 +4,67 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bull Market Protocol - Git Bot</title>
-  <style>
-    /* --- RESET & CYBERPUNK BASE --- */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      background-color: #060913;
-      color: #ffffff;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    /* --- REAL-TIME TICKER TAPE (Left to Right) --- */
-    .ticker-tape {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      background: #0b1120;
-      border-bottom: 1px solid rgba(16, 185, 129, 0.2);
-      padding: 10px 0;
-      overflow: hidden;
-      white-space: nowrap;
-      z-index: 100;
-    }
-
-    .ticker-wrapper {
-      display: inline-flex;
-      animation: tickerMove 35s linear infinite; /* Un poco más lento para leer los nuevos activos */
-      gap: 50px;
-      padding-right: 50px;
-    }
-
-    .crypto-item {
-      font-family: monospace;
-      font-size: 0.95rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-    }
-
-    .crypto-item .symbol { color: #9ca3af; }
-    .crypto-item .value { color: #10b981; margin-left: 5px; }
-
-    @keyframes tickerMove {
-      0% { transform: translate3d(-50%, 0, 0); }
-      100% { transform: translate3d(0, 0, 0); }
-    }
-
-    /* --- TRADING INTERFACE GRID --- */
-    .trading-screen {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: 
-        linear-gradient(rgba(16, 185, 129, 0.02) 1px, transparent 1px) 0 0 / 40px 40px,
-        linear-gradient(90deg, rgba(16, 185, 129, 0.02) 1px, transparent 1px) 0 0 / 40px 40px;
-    }
-
-    /* --- Live Price HUD Display --- */
-    .hud-display {
-      position: absolute;
-      top: 80px;
-      text-align: center;
-      z-index: 10;
-    }
-
-    .ticker-title {
-      font-size: 1.2rem;
-      color: #9ca3af;
-      font-weight: 600;
-      letter-spacing: 2px;
-      margin-bottom: 5px;
-    }
-
-    .price-value {
-      font-size: 3.5rem;
-      font-weight: 900;
-      color: #10b981;
-      text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
-      font-family: monospace;
-      transition: transform 0.1s ease, text-shadow 0.1s ease;
-    }
-
-    .price-pump-flash {
-      transform: scale(1.05);
-      text-shadow: 0 0 35px rgba(52, 211, 153, 0.9);
-    }
-
-    /* --- THE CANDLESTICK SYSTEM --- */
-    .chart-container {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 400px;
-      width: 200px;
-    }
-
-    .wick {
-      position: absolute;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(to bottom, #059669, #10b981, #059669);
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-    }
-
-    .candle-body {
-      position: absolute;
-      bottom: 20%;
-      width: 70px;
-      height: 40%;
-      background: linear-gradient(180deg, #10b981 0%, #047857 100%);
-      border: 2px solid #34d399;
-      border-radius: 4px;
-      box-shadow: 0 0 40px rgba(16, 185, 129, 0.6), inset 0 0 15px rgba(52, 211, 153, 0.4);
-      z-index: 2;
-      animation: 
-        candlePump 5s cubic-bezier(0.25, 1, 0.5, 1) infinite,
-        candleJitter 0.15s ease-in-out infinite alternate;
-    }
-
-    .coaster-line {
-      position: absolute;
-      width: 150vw;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #34d399, #ffffff, #34d399, transparent);
-      box-shadow: 0 0 15px #10b981;
-      transform: rotate(-15deg);
-      z-index: 1;
-      animation: rideLine 2.5s infinite linear;
-    }
-
-    /* --- ANIMATION KEYFRAMES --- */
-    @keyframes candlePump {
-      0% { height: 25%; bottom: 20%; }
-      30% { height: 55%; bottom: 20%; }
-      35% { height: 48%; bottom: 25%; }
-      65% { height: 85%; bottom: 10%; box-shadow: 0 0 60px rgba(16, 185, 129, 0.9), inset 0 0 25px rgba(52, 211, 153, 0.6); }
-      90% { height: 90%; bottom: 5%; }
-      100% { height: 25%; bottom: 20%; }
-    }
-
-    @keyframes candleJitter {
-      0% { transform: scaleX(1) translateX(-0.5px); filter: brightness(1); }
-      100% { transform: scaleX(1.03) translateX(0.5px); filter: brightness(1.15); }
-    }
-
-    @keyframes rideLine {
-      0% { transform: translate(-50%, 100px) rotate(-20deg); opacity: 0; }
-      50% { opacity: 0.8; }
-      100% { transform: translate(50%, -200px) rotate(-20deg); opacity: 0; }
-    }
-
-    .status-banner {
-      position: absolute;
-      bottom: 40px;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 10px 25px;
-      border-radius: 30px;
-      font-weight: bold;
-      letter-spacing: 1px;
-      color: #34d399;
-      text-transform: uppercase;
-      font-size: 0.9rem;
-    }
-  </style>
+  <!-- Enlace al archivo CSS externo -->
+  <link rel="stylesheet" href="styles/styles.css">
 </head>
 <body>
 
   <!-- Ticker Tape Desplazándose de Izquierda a Derecha -->
   <div class="ticker-tape">
-    <div class="ticker-wrapper" id="ticker-content">
-      <!-- El contenido se inyecta y clona dinámicamente vía JS -->
-    </div>
+    <div class="ticker-wrapper" id="ticker-content"></div>
   </div>
 
   <div class="trading-screen">
     
+    <!-- Fondo estelar dinámico -->
+    <canvas class="stars-background" id="starsCanvas"></canvas>
+    
     <!-- HUD de Precio Principal (BTC Activo) -->
     <div class="hud-display">
-      <div class="ticker-title">BTC / USD • BREAKOUT DETECTED</div>
+      <div class="ticker-title">BTC / USD • CELESTIAL ALIGNMENT</div>
       <div class="price-value" id="live-price">$77,427.38</div>
     </div>
 
-    <div class="coaster-line"></div>
+    <!-- Contenedor del Toro en Constelación -->
+    <div class="constellation-container">
+      <svg class="bull-svg" viewBox="0 0 600 450">
+        <!-- Líneas que unen las estrellas del Toro (Taurus) -->
+        <line class="constellation-line" x1="150" y1="50" x2="280" y2="180" />
+        <line class="constellation-line" x1="120" y1="140" x2="280" y2="180" />
+        <line class="constellation-line" x1="280" y1="180" x2="330" y2="210" />
+        <line class="constellation-line" x1="280" y1="180" x2="300" y2="260" />
+        <line class="constellation-line" x1="330" y1="210" x2="300" y2="260" />
+        <line class="constellation-line" x1="330" y1="210" x2="480" y2="230" />
+        <line class="constellation-line" x1="300" y1="260" x2="430" y2="340" />
+        <line class="constellation-line" x1="480" y1="230" x2="430" y2="340" />
+        <line class="constellation-line" x1="480" y1="230" x2="550" y2="200" />
+        <line class="constellation-line" x1="430" y1="340" x2="490" y2="400" />
 
-    <div class="chart-container">
-      <div class="wick"></div>
-      <div class="candle-body"></div>
+        <!-- Nodos de Estrellas -->
+        <circle class="star-node" cx="150" cy="50" r="4" />
+        <circle class="star-node" cx="120" cy="140" r="4" />
+        <circle class="star-node" cx="280" cy="180" r="4" />
+        <circle class="star-node" cx="300" cy="260" r="4" />
+        <circle class="star-node" cx="430" cy="340" r="4" />
+        <circle class="star-node" cx="480" cy="230" r="4" />
+        <circle class="star-node" cx="550" cy="200" r="3" />
+        <circle class="star-node" cx="490" cy="400" r="3" />
+        
+        <!-- ESTRELLA ALDEBARÁN (El ojo brillante del Toro en color verde GitBot) -->
+        <circle class="aldebaran" cx="330" cy="210" r="8" />
+      </svg>
     </div>
 
     <div class="status-banner">
-      🎢 Escalator Mode: Active
+      ✨ Constellation Bull Mode: Active
     </div>
 
   </div>
 
-  <!-- --- SCRIPTS EN VIVO --- -->
-  <script>
-    // Configuración y Precios base en tiempo real actualizados
-    const cryptoData = {
-      BTC:  { price: 77427.38, upProb: 0.75, maxUp: 250,    maxDown: 45 },
-      ETH:  { price: 2406.98,  upProb: 0.72, maxUp: 12,     maxDown: 3.2 },
-      SOL:  { price: 100.04,   upProb: 0.74, maxUp: 0.95,   maxDown: 0.22 },
-      BNB:  { price: 680.29,   upProb: 0.70, maxUp: 3.5,    maxDown: 0.9 },
-      TRX:  { price: 0.3250,   upProb: 0.68, maxUp: 0.004,  maxDown: 0.001 },
-      WLFI: { price: 0.0574,   upProb: 0.65, maxUp: 0.002,  maxDown: 0.0005 },
-      USDT: { price: 0.9995,   upProb: 0.50, maxUp: 0.0003, maxDown: 0.0003 }
-    };
-
-    const tickerContainer = document.getElementById('ticker-content');
-    
-    // Función para renderizar el html del ticker
-    function generateTickerHTML() {
-      return Object.keys(cryptoData).map(symbol => {
-        let displayPrice = cryptoData[symbol].price.toLocaleString('en-US', {
-          style: 'currency', 
-          currency: 'USD',
-          minimumFractionDigits: (symbol === 'WLFI' || symbol === 'USDT' || symbol === 'TRX') ? 4 : 2
-        });
-        return `
-          <div class="crypto-item">
-            <span class="symbol">🔹 ${symbol}/USD:</span>
-            <span class="value" id="val-${symbol}">${displayPrice}</span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    // Copiamos la cadena de texto tres veces para cubrir toda la pantalla del bucle infinito sin saltos
-    const tickerSet = generateTickerHTML();
-    tickerContainer.innerHTML = tickerSet + tickerSet + tickerSet;
-
-    // Actualizador de ticks del mercado por segundo
-    function updateMarketTicks() {
-      Object.keys(cryptoData).forEach(symbol => {
-        const coin = cryptoData[symbol];
-        
-        // Simular fluctuación alcista controlada
-        const isUp = Math.random() < coin.upProb;
-        const delta = isUp ? (Math.random() * coin.maxUp) : -(Math.random() * coin.maxDown);
-        coin.price += delta;
-
-        // Anclaje técnico de seguridad para la Stablecoin USDT
-        if (symbol === 'USDT') {
-          if (coin.price > 1.0005) coin.price = 1.0001;
-          if (coin.price < 0.9990) coin.price = 0.9994;
-        }
-
-        // Formatear el precio según el tipo de moneda
-        let formatted = coin.price.toLocaleString('en-US', {
-          style: 'currency',
-          currency: 'USD',
-          minimumFractionDigits: (symbol === 'WLFI' || symbol === 'USDT' || symbol === 'TRX') ? 4 : 2
-        });
-
-        // Actualizar todos los clones renderizados en la marquesina superior
-        const elementInstances = document.querySelectorAll(`#val-${symbol}`);
-        elementInstances.forEach(el => { el.innerText = formatted; });
-
-        // Si es Bitcoin, replicar el tick en la interfaz HUD principal de la vela
-        if (symbol === 'BTC') {
-          const mainPriceNode = document.getElementById('live-price');
-          mainPriceNode.innerText = formatted;
-
-          // Flash reactivo ante subidas violentas
-          if (isUp && delta > 120) {
-            mainPriceNode.classList.add('price-pump-flash');
-            setTimeout(() => mainPriceNode.classList.remove('price-pump-flash'), 120);
-          }
-        }
-      });
-    }
-
-    // Actualización global del ecosistema cripto cada 1000ms
-    setInterval(updateMarketTicks, 1000);
-  </script>
-
+  <!-- Enlace al archivo JavaScript externo -->
+  <script src="script/script.js"></script>
 </body>
 </html>
+
 
 
