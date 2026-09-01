@@ -1,0 +1,171 @@
+/* --- RESET & SPACE BASE --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #030712;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* --- REAL-TIME TICKER TAPE (Left to Right) --- */
+.ticker-tape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  background: #0b1120;
+  border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+  padding: 10px 0;
+  overflow: hidden;
+  white-space: nowrap;
+  z-index: 100;
+}
+
+.ticker-wrapper {
+  display: inline-flex;
+  animation: tickerMove 35s linear infinite;
+  gap: 50px;
+  padding-right: 50px;
+}
+
+.crypto-item {
+  font-family: monospace;
+  font-size: 0.95rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.crypto-item .symbol { color: #9ca3af; }
+.crypto-item .value { color: #10b981; margin-left: 5px; }
+
+@keyframes tickerMove {
+  0% { transform: translate3d(-50%, 0, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* --- TRADING INTERFACE / CANVAS --- */
+.trading-screen {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.stars-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* --- Live Price HUD Display --- */
+.hud-display {
+  position: absolute;
+  top: 80px;
+  text-align: center;
+  z-index: 10;
+}
+
+.ticker-title {
+  font-size: 1.2rem;
+  color: #9ca3af;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+}
+
+.price-value {
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: #10b981;
+  text-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+  font-family: monospace;
+  transition: transform 0.1s ease, text-shadow 0.1s ease;
+}
+
+.price-pump-flash {
+  transform: scale(1.05);
+  text-shadow: 0 0 35px rgba(52, 211, 153, 0.9);
+}
+
+/* --- CONSTELLATION CONTAINER --- */
+.constellation-container {
+  position: relative;
+  width: 600px;
+  height: 450px;
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  filter: drop-shadow(0 0 15px rgba(16, 185, 129, 0.4));
+}
+
+.bull-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.constellation-line {
+  stroke: rgba(16, 185, 129, 0.35);
+  stroke-width: 1.5;
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: drawLine 4s ease-out forwards;
+}
+
+.star-node {
+  fill: #ffffff;
+  animation: starGlow 2s ease-in-out infinite alternate;
+}
+
+.aldebaran {
+  fill: #10b981;
+  filter: drop-shadow(0 0 10px #10b981);
+  animation: aldebaranPulse 1.5s ease-in-out infinite alternate;
+}
+
+/* --- KEYFRAMES ANIMACIONES --- */
+@keyframes drawLine {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes starGlow {
+  0% { r: 3; filter: drop-shadow(0 0 2px rgba(255,255,255,0.5)); }
+  100% { r: 5; filter: drop-shadow(0 0 8px rgba(255,255,255,1)); }
+}
+
+@keyframes aldebaranPulse {
+  0% { r: 6; filter: drop-shadow(0 0 4px #10b981); opacity: 0.7; }
+  100% { r: 10; filter: drop-shadow(0 0 20px #34d399); opacity: 1; }
+}
+
+.status-banner {
+  position: absolute;
+  bottom: 40px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 10px 25px;
+  border-radius: 30px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  color: #34d399;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  z-index: 10;
+}
+
