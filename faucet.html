@@ -3,50 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bitcoin Testnet Faucet</title>
-    <!-- Vinculación del archivo CSS externo -->
-    <link rel="stylesheet" href="css/fau.css">
+    <title>Crypto Faucet ERC-20</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="faucet-container">
+        <header>
+            <div class="bitcoin-logo">🪙</div>
+            <h1>ERC-20 Faucet</h1>
+            <p>Reclama tus tokens cada viernes a las 7:00 PM</p>
+        </header>
 
-    <div class="container">
-        <div class="logo">₿</div>
-        <h1>Testnet Faucet</h1>
-        <p>Introduce tu dirección de Bitcoin Testnet (tb1... o 2...) para recibir fondos de prueba gratuitos.</p>
+        <main>
+            <!-- Botón de Conexión Web3 -->
+            <button id="connect-btn" class="btn-connect">Conectar Billetera</button>
+            <p id="wallet-address" class="wallet-address"></p>
 
-        <div class="faucet-info">
-            Paga actual: <strong>0.001 tBTC</strong> por solicitud (Límite: 1 cada 24 horas)
-        </div>
-
-        <form id="faucetForm">
-            <div class="form-group">
-                <label for="btcAddress">Dirección Bitcoin Testnet</label>
-                <input 
-                    type="text" 
-                    id="btcAddress" 
-                    placeholder="tb1q..." 
-                    required 
-                    pattern="^(tb1|[2m]n)[a-km-zA-HJ-NP-Z1-9]{25,65}$"
-                    title="Introduce una dirección válida de Bitcoin Testnet (Legacy, P2SH o SegWit/Bech32)"
-                >
+            <!-- Panel de Balance -->
+            <div class="balance-card">
+                <span class="balance-label">Tu Balance en el Contrato</span>
+                <div class="balance-amount">
+                    <span id="user-balance">0.00</span> <span class="currency" id="token-symbol">TOKEN</span>
+                </div>
             </div>
 
-            <button type="submit" id="submitBtn" class="btn-claim">Reclamar tBTC</button>
-        </form>
+            <!-- Zona de Reclamo -->
+            <div class="claim-box">
+                <div id="timer-display" class="timer hidden">Próximo reclamo disponible en: <span id="countdown">--:--:--</span></div>
+                <button id="claim-btn" class="btn-claim" disabled>Reclamar Tokens</button>
+                <p id="message" class="message"></p>
+            </div>
+        </main>
 
-        <div id="successAlert" class="alert alert-success">
-            🎉 <strong>¡Fondos enviados con éxito!</strong><br>
-            TXID: <span id="txid"></span>
-        </div>
-
-        <div id="errorAlert" class="alert alert-error">
-            ⚠️ <strong>Error:</strong> <span id="errorMessage"></span>
-        </div>
+        <section class="history-section">
+            <h3>Estado del Faucet</h3>
+            <div class="faucet-info">
+                <p>Dirección del Token: <span id="token-address-ui">0x...</span></p>
+            </div>
+        </section>
     </div>
 
-    <!-- Vinculación del archivo JavaScript externo -->
-    <script src="script/fau.js"></script>
+    <!-- Incluimos Ethers.js v6 mediante CDN -->
+    <script src="https://cloudflare.com"></script>
+    <script src="script.js"></script>
 </body>
 </html>
-
-
