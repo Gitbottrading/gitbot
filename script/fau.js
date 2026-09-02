@@ -1,128 +1,183 @@
-// Configuración de la Faucet
-const COOLDOWN_TIME = 5 * 60; // 5 minutos en segundos
-const MIN_REWARD = 1;
-const MAX_REWARD = 10;
+// CONFIGURACIÓN BLOCKCHAIN
+const TOKEN_CONTRACT_ADDRESS = "0xTuDireccionDeContratoAqui"; 
+
+// ABI mínimo para interactuar con el ERC-20 y su función Faucet
+const CONTRACT_ABI = [
+    "function balanceOf(address owner) view returns (uint256)",
+    "function symbol() view returns (string)",
+    "function decimals() view returns (uint8)",
+    "function claim() external" // Asumiendo que tu contrato tiene la función 'claim'
+];
+
+// Variables globales Web3
+let provider;
+let signer;
+let contract;
+let userAddress = null;
+let timerInterval;
 
 // Elementos del DOM
+const connectBtn = document.getElementById('connect-btn');
+const walletAddressDisplay = document.getElementById('wallet-address');
 const balanceDisplay = document.getElementById('user-balance');
+const tokenSymbolDisplay = document.getElementById('token-symbol');
 const claimBtn = document.getElementById('claim-btn');
 const timerDisplay = document.getElementById('timer-display');
 const countdownDisplay = document.getElementById('countdown');
 const messageDisplay = document.getElementById('message');
-const historyList = document.getElementById('history-list');
+document.getElementById('token-address-ui').textContent = TOKEN_CONTRACT_ADDRESS;
 
-// Estado de la aplicación
-let balance = parseInt(localStorage.getItem('faucet_balance')) || 0;
-let nextClaimTime = localStorage.getItem('next_claim_time') || 0;
-let countdownInterval;
-
-// Inicializar app
-function init() {
-    balanceDisplay.textContent = balance;
-    updateHistoryDOM();
-    checkCooldown();
-}
-
-// Comprobar si el usuario tiene que esperar
-function checkCooldown() {
-    const currentTime = Math.floor(Date.now() / 1000);
-    
-    if (currentTime < nextClaimTime) {
-        const remainingTime = nextClaimTime - currentTime;
-        startTimer(remainingTime);
-    } else {
-        enableClaimButton();
-    }
-}
-
-// Iniciar contador
-function startTimer(duration) {
-    claimBtn.disabled = true;
-    timerDisplay.classList.remove('hidden');
-    
-    let timer = duration;
-    updateTimerText(timer);
-
-    clearInterval(countdownInterval);
-    countdownInterval = setInterval(() => {
-        timer--;
-        updateTimerText(timer);
-
-        if (timer <= 0) {
-            clearInterval(countdownInterval);
-            enableClaimButton();
-        }
-    }, 1000);
-}
-
-function updateTimerText(seconds) {
-    const minutes = Math.floor(seconds / 60);
-    const remSeconds = seconds % 60;
-    countdownDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remSeconds.toString().padStart(2, '0')}`;
-}
-
-function enableClaimButton() {
-    claimBtn.disabled = false;
-    timerDisplay.classList.add('hidden');
-    messageDisplay.textContent = '';
-}
-
-// Lógica de reclamo
-claimBtn.addEventListener('click', () => {
-    // 1. Calcular recompensa aleatoria
-    const reward = Math.floor(Math.random() * (MAX_REWARD - MIN_REWARD + 1)) + MIN_REWARD;
-    
-    // 2. Actualizar balance
-    balance += reward;
-    localStorage.setItem('faucet_balance', balance);
-    balanceDisplay.textContent = balance;
-
-    // 3. Guardar marca de tiempo del próximo reclamo
-    const claimTime = Math.floor(Date.now() / 1000);
-    nextClaimTime = claimTime + COOLDOWN_TIME;
-    localStorage.setItem('next_claim_time', nextClaimTime);
-
-    // 4. Agregar al historial
-    saveToHistory(reward);
-
-    // 5. Mostrar feedback al usuario
-    messageDisplay.textContent = `¡Felicidades! Has reclamado +${reward} Satoshis.`;
-    messageDisplay.className = "message success";
-
-    // 6. Activar bloqueo temporal
-    startTimer(COOLDOWN_TIME);
-});
-
-// Guardar historial en LocalStorage
-function saveToHistory(amount) {
-    let history = JSON.parse(localStorage.getItem('faucet_history')) || [];
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    
-    history.unshift({ amount, time: timeStr }); // Añade al inicio
-    if (history.length > 5) history.pop(); // Limita a los últimos 5 reclamos
-    
-    localStorage.setItem('faucet_history', JSON.stringify(history));
-    updateHistoryDOM();
-}
-
-// Pintar el historial en pantalla
-function updateHistoryDOM() {
-    let history = JSON.parse(localStorage.getItem('faucet_history')) || [];
-    historyList.innerHTML = '';
-    
-    if (history.length === 0) {
-        historyList.innerHTML = '<li class="history-item">No hay reclamos recientes.</li>';
+// 1. CONEXIÓN WEB3 (METAMASK)
+async function connectWallet() {
+    if (!window.ethereum) {
+        showMessage("Por favor instala MetaMask u otra billetera Web3.", "error");
         return;
     }
 
-    history.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'history-item';
-        li.innerHTML = `<span>${item.time}</span> <span class="sats-earned">+${item.amount} Sats</span>`;
-        historyList.appendChild(li);
+    try {
+        // Inicializar Ethers v6
+        provider = new ethers.BrowserProvider(window.ethereum);
+        
+        // Solicitar cuentas
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        userAddress = await signer.getAddress();
+
+        // Mostrar billetera conectada
+        walletAddressDisplay.textContent = `Conectado: ${userAddress.substring(0,6)}...${userAddress.substring(userAddress.length - 4)}`;
+        connectBtn.textContent = "Billetera Conectada";
+        connectBtn.disabled = true;
+
+        // Instanciar Contrato Inteligente
+        contract = new ethers.Contract(TOKEN_CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+        // Cargar datos
+        await updateTokenData();
+        
+        // Iniciar bucle de verificación de tiempo
+        initTimerSystem();
+
+    } catch (error) {
+        console.error(error);
+        showMessage("Error al conectar la billetera.", "error");
+    }
+}
+
+// 2. LEER DATOS DEL CONTRATO (Balance y Símbolo)
+async function updateTokenData() {
+    try {
+        const symbol = await contract.symbol();
+        const decimals = await contract.decimals();
+        const rawBalance = await contract.balanceOf(userAddress);
+        
+        // Formatear balance usando los decimales del token
+        const formattedBalance = ethers.formatUnits(rawBalance, decimals);
+
+        tokenSymbolDisplay.textContent = symbol;
+        balanceDisplay.textContent = parseFloat(formattedBalance).toFixed(4);
+    } catch (error) {
+        console.error("Error leyendo datos del contrato:", error);
+    }
+}
+
+// 3. LÓGICA DEL TIEMPO (Viernes 7:00 PM)
+function initTimerSystem() {
+    clearInterval(timerInterval);
+    
+    // Ejecutar inmediatamente y luego cada segundo
+    checkTimeAndStatus();
+    timerInterval = setInterval(checkTimeAndStatus, 1000);
+}
+
+function checkTimeAndStatus() {
+    const now = new Date();
+    
+    // Calcular el próximo viernes a las 19:00:00
+    let target = new Date();
+    target.setDate(now.getDate() + (5 - now.getDay() + 7) % 7); // 5 representa el Viernes
+    target.setHours(19, 0, 0, 0); // 19:00 horas
+
+    // Si ya es viernes y pasó de las 7 PM, el próximo objetivo es el viernes de la siguiente semana
+    if (now >= target) {
+        // En este diseño: Permitimos reclamar todo el viernes después de las 7:00 PM hasta que termine el día
+        // Si quieres que el botón se cierre exactamente después de cierto tiempo, puedes ajustar aquí.
+        const unDiaDespues = new Date(target);
+        unDiaDespues.setHours(23, 59, 59, 999);
+
+        if (now <= unDiaDespues) {
+            // ¡Es el momento de reclamar!
+            claimBtn.disabled = false;
+            timerDisplay.classList.add('hidden');
+            return;
+        } else {
+            // Si ya pasó el viernes por completo, apuntamos al viernes de la otra semana
+            target.setDate(target.getDate() + 7);
+        }
+    }
+
+    // Si no es el momento, calcular la cuenta regresiva
+    claimBtn.disabled = true;
+    timerDisplay.classList.remove('hidden');
+
+    const difference = target - now; // diferencia en milisegundos
+
+    const dias = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const horas = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutos = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+    const segundos = Math.floor((difference % (1000 * 60)) / 1000);
+
+    countdownDisplay.textContent = `${dias}d ${horas.toString().padStart(2, '0')}h ${minutos.toString().padStart(2, '0')}m ${segundos.toString().padStart(2, '0')}s`;
+}
+
+// 4. EJECUTAR TRANSACCIÓN DE RECLAMO (CLAIM)
+async function claimTokens() {
+    if (!contract || !userAddress) return;
+
+    try {
+        showMessage("Enviando transacción a la blockchain... Confirma en tu billetera.", "");
+        claimBtn.disabled = true;
+
+        // Llamar a la función claim() del Smart Contract
+        const tx = await contract.claim();
+        showMessage("Transacción enviada. Esperando confirmación de la red...", "");
+        
+        // Esperar a que la transacción se mine
+        await tx.wait();
+
+        showMessage(`¡Reclamo exitoso! Revisa tu billetera. Hash: ${tx.hash.substring(0,15)}...`, "success");
+        
+        // Actualizar el balance reflejado
+        await updateTokenData();
+
+    } catch (error) {
+        console.error(error);
+        // Manejo de errores amigable si el contrato revierte la transacción
+        if (error.reason) {
+            showMessage(`Error del contrato: ${error.reason}`, "error");
+        } else {
+            showMessage("La transacción fue cancelada o falló.", "error");
+        }
+        claimBtn.disabled = false;
+    }
+}
+
+// Helpers
+function showMessage(text, type) {
+    messageDisplay.textContent = text;
+    messageDisplay.className = `message ${type}`;
+}
+
+// Event Listeners
+connectBtn.addEventListener('click', connectWallet);
+claimBtn.addEventListener('click', claimTokens);
+
+// Escuchar si el usuario cambia de cuenta en MetaMask
+if (window.ethereum) {
+    window.ethereum.on('accountsChanged', () => {
+        window.location.reload();
+    });
+    window.ethereum.on('chainChanged', () => {
+        window.location.reload();
     });
 }
 
-// Arrancar la app al cargar la página
-init();
