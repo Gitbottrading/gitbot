@@ -197,3 +197,41 @@ if (window.ethereum) {
     window.ethereum.on('chainChanged', () => window.location.reload());
 }
 
+// 1. Obtener la referencia del nuevo botón del DOM
+const addTokenBtn = document.getElementById('add-token-btn');
+
+// 2. Función para solicitar a MetaMask que registre el token bBTC
+async function addTokenToMetaMask() {
+    if (!window.ethereum) return;
+
+    try {
+        // Ejecuta el método estándar watchAsset de la EIP-747
+        const wasAdded = await window.ethereum.request({
+            method: 'wallet_watchAsset',
+            params: {
+                type: 'ERC20', 
+                options: {
+                    address: TOKEN_CONTRACT_ADDRESS, // Tu contrato: 0x0cD82cC8f27E012FE5C13aD4d1323C090CEfc257
+                    symbol: 'bBTC',                  // El símbolo que configuraste
+                    decimals: 18,                    // Los decimales estándar ERC20 por defecto
+                    image: 'https://cryptologos.cc', // Icono visual para la billetera
+                },
+            },
+        });
+
+        if (wasAdded) {
+            console.log('¡El usuario aceptó y el token bBTC fue añadido con éxito!');
+        } else {
+            console.log('El usuario rechazó la solicitud.');
+        }
+    } catch (error) {
+        console.error('Error al intentar añadir el token:', error);
+    }
+}
+
+// 3. Vincular el evento Click al botón
+addTokenBtn.addEventListener('click', addTokenToMetaMask);
+
+// 4. Modificar tu función connectWallet existente para que muestre este botón al conectar
+// Busca tu función connectWallet() actual y justo dentro del bloque "try {}", al final, añade esto:
+// addTokenBtn.style.display = 'block'; 
