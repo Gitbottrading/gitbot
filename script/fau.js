@@ -260,4 +260,73 @@ if (window.ethereum) {
     window.ethereum.on('accountsChanged', () => window.location.reload());
     window.ethereum.on('chainChanged', () => window.location.reload());
 }
+// ==========================================
+// 1. CONEXIÓN CON BILLETERA WEB3 (OPTIMIZADA)
+// ==========================================
+async function connectWallet() {
+    if (!window.ethereum) {
+        showMessage("Por favor instala MetaMask u otra billetera Web3.", "error");
+        return;
+    }
+
+    try {
+        // 1. Solicitar de inmediato acceso a las cuentas de MetaMask
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        if (accounts.length === 0) {
+            showMessage("No se encontraron cuentas disponibles.", "error");
+            return;
+        }
+        
+        userAddress = accounts[0];
+
+        // 2. Inicializar el proveedor y firmante adaptado a Ethers.js v6
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+
+        // 3. Validar si el usuario está conectado a la red correcta (Sepolia Network)
+        // El Chain ID hexadecimal de Sepolia es '0xaa36a7' (11155111 en decimal)
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        if (currentChainId !== '0xaa36a7') {
+            try {
+                // Forzar el cambio automático a la red Sepolia
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xaa36a7' }],
+                });
+            } catch (switchError) {
+                showMessage("Por favor cambia la red de tu MetaMask a Sepolia Testnet.", "error");
+                return;
+            }
+        }
+
+        // 4. Actualizar interfaz visual de la billetera
+        walletAddressDisplay.textContent = `Conectado: ${userAddress.substring(0,6)}...${userAddress.substring(userAddress.length - 4)}`;
+        connectBtn.textContent = "Billetera Conectada";
+        connectBtn.disabled = true;
+
+        // Mostrar el botón para añadir el token bBTC si existe en el HTML
+        if (addTokenBtn) {
+            addTokenBtn.style.display = 'inline-flex';
+        }
+
+        // 5. Instanciar el objeto del contrato inteligente en Sepolia
+        contract = new ethers.Contract(TOKEN_CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+
+        // Obtener balances, precios y símbolos de la blockchain
+        await updateTokenData();
+        
+        // Iniciar el bucle del temporizador en vivo del Faucet
+        initTimerSystem();
+
+    } catch (error) {
+        // Imprime el error real completo en la consola web para depuración (Presiona F12 en tu navegador)
+        console.error("Detalle técnico del fallo al conectar:", error);
+        
+        if (error.code === 4001) {
+            showMessage("Conexión rechazada: Has cancelado la solicitud en MetaMask.", "error");
+        } else {
+            showMessage(`Fallo al conectar: ${error.message || "Revisa la consola (F12)"}`, "error");
+        }
+    }
+}
 
