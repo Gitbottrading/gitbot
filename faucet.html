@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bitcoin Testnet Faucet</title>
+    <!-- Vinculación del archivo CSS externo -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">₿</div>
+        <h1>Testnet Faucet</h1>
+        <p>Introduce tu dirección de Bitcoin Testnet (tb1... o 2...) para recibir fondos de prueba gratuitos.</p>
+
+        <div class="faucet-info">
+            Paga actual: <strong>0.001 tBTC</strong> por solicitud (Límite: 1 cada 24 horas)
+        </div>
+
+        <form id="faucetForm">
+            <div class="form-group">
+                <label for="btcAddress">Dirección Bitcoin Testnet</label>
+                <input 
+                    type="text" 
+                    id="btcAddress" 
+                    placeholder="tb1q..." 
+                    required 
+                    pattern="^(tb1|[2m]n)[a-km-zA-HJ-NP-Z1-9]{25,65}$"
+                    title="Introduce una dirección válida de Bitcoin Testnet (Legacy, P2SH o SegWit/Bech32)"
+                >
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-claim">Reclamar tBTC</button>
+        </form>
+
+        <div id="successAlert" class="alert alert-success">
+            🎉 <strong>¡Fondos enviados con éxito!</strong><br>
+            TXID: <span id="txid"></span>
+        </div>
+
+        <div id="errorAlert" class="alert alert-error">
+            ⚠️ <strong>Error:</strong> <span id="errorMessage"></span>
+        </div>
+    </div>
+
+    <!-- Vinculación del archivo JavaScript externo -->
+    <script src="app.js"></script>
+</body>
+</html>
+
+
