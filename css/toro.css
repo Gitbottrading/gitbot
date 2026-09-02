@@ -1,0 +1,100 @@
+/* Fondo del espacio profundo */
+body {
+    margin: 0;
+    height: 100vh;
+    background: radial-gradient(circle at center, #0a1128 0%, #000411 70%, #000000 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Efecto de Nebulosa Cósmica de fondo */
+body::before {
+    content: "";
+    position: absolute;
+    width: 140%;
+    height: 140%;
+    background: radial-gradient(circle at 35% 40%, rgba(212, 175, 55, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 65% 60%, rgba(0, 119, 182, 0.08) 0%, transparent 50%);
+    animation: nebulaDrift 25s infinite alternate ease-in-out;
+    z-index: 1;
+}
+
+/* Contenedor principal adaptable */
+.canvas-container {
+    position: relative;
+    width: 90vw;
+    max-width: 700px;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    z-index: 2;
+}
+
+svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* --- ESTILOS DE LA SILUETA DEL TORO --- */
+
+/* Líneas doradas principales del cuerpo */
+.toro-outline {
+    fill: none;
+    stroke: url(#gold-gradient);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: url(#cosmic-glow);
+}
+
+/* Líneas internas de los músculos y detalles anatómicos */
+.toro-details {
+    fill: none;
+    stroke: url(#gold-gradient-soft);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    opacity: 0.75;
+    filter: url(#subtle-glow);
+}
+
+/* --- ESTILOS DE LA CONSTELACIÓN --- */
+
+/* Líneas geométricas que unen las estrellas */
+.constellation-line {
+    fill: none;
+    stroke: rgba(255, 230, 150, 0.4);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+}
+
+/* Estrellas estandar de la constelación */
+.star {
+    fill: #ffffff;
+    filter: drop-shadow(0 0 8px rgba(255, 215, 0, 1)) drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
+    animation: starPulse 4s infinite ease-in-out;
+}
+
+/* Ojo del Toro (Estrella gigante Aldebarán) */
+.aldebaran {
+    fill: #ffebd7;
+    filter: drop-shadow(0 0 12px rgba(255, 69, 0, 1)) drop-shadow(0 0 25px rgba(255, 140, 0, 0.9));
+    animation: starPulse 3s infinite ease-in-out;
+}
+
+/* Desfase en las animaciones de las estrellas para mayor realismo orgánico */
+.star:nth-child(odd) { animation-delay: 1.5s; }
+.star:nth-child(3n) { animation-delay: 0.7s; }
+
+/* --- ANIMACIONES --- */
+@keyframes starPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+}
+
+@keyframes nebulaDrift {
+    0% { transform: translate(-5%, -5%) rotate(0deg); }
+    100% { transform: translate(5%, 5%) rotate(5deg); }
+}
