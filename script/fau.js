@@ -1,7 +1,10 @@
-// BLOCKCHAIN SETTINGS (SEPOLIA NET)
+// ==========================================
+// BLOCKCHAIN SETTINGS (SEPOLIA NETWORK)
+// ==========================================
 const TOKEN_CONTRACT_ADDRESS = "0x0cD82cC8f27E012FE5C13aD4d1323C090CEfc257"; 
+const BACKEND_API_URL = "http://localhost:3000/api/request-claim"; // Cambiar por tu URL de producción en el futuro
 
-// ABI needed to read data and call the Faucet functions
+// ABI necesario para leer los datos y ejecutar el Faucet
 const CONTRACT_ABI = [
     "function balanceOf(address owner) view returns (uint256)",
     "function symbol() view returns (string)",
@@ -11,15 +14,16 @@ const CONTRACT_ABI = [
     "function claimFaucet(bytes calldata signature) external"
 ];
 
-// Web3 global variables
+// Variables globales de Web3
 let provider;
 let signer;
 let contract;
 let userAddress = null;
 let timerInterval;
 
-// DOM Elements
+// Elementos del DOM
 const connectBtn = document.getElementById('connect-btn');
+const addTokenBtn = document.getElementById('add-token-btn');
 const walletAddressDisplay = document.getElementById('wallet-address');
 const balanceDisplay = document.getElementById('user-balance');
 const tokenSymbolDisplay = document.getElementById('token-symbol');
@@ -28,69 +32,82 @@ const timerDisplay = document.getElementById('timer-display');
 const countdownDisplay = document.getElementById('countdown');
 const messageDisplay = document.getElementById('message');
 
-// Set UI contract reference
+// Configurar dirección del contrato en la interfaz si el elemento existe
 if (document.getElementById('token-address-ui')) {
     document.getElementById('token-address-ui').textContent = TOKEN_CONTRACT_ADDRESS;
 }
 
-// 1. WEB3 WALLET CONNECTION
+// ==========================================
+// 1. CONEXIÓN CON BILLETERA WEB3 (METAMASK)
+// ==========================================
 async function connectWallet() {
     if (!window.ethereum) {
-        showMessage("Please install MetaMask or another Web3 wallet.", "error");
+        showMessage("Por favor instala MetaMask u otra billetera Web3.", "error");
         return;
     }
 
     try {
-        // Initialize Ethers v6 Browser Provider
+        // Inicializar el proveedor de Ethers v6
         provider = new ethers.BrowserProvider(window.ethereum);
         
-        // Request account access
+        // Solicitar acceso a las cuentas del usuario
         await provider.send("eth_requestAccounts", []);
         signer = await provider.getSigner();
         userAddress = await signer.getAddress();
 
-        // Update Wallet UI
-        walletAddressDisplay.textContent = `Connected: ${userAddress.substring(0,6)}...${userAddress.substring(userAddress.length - 4)}`;
-        connectBtn.textContent = "Wallet Connected";
+        // Actualizar interfaz de la billetera
+        walletAddressDisplay.textContent = `Conectado: ${userAddress.substring(0,6)}...${userAddress.substring(userAddress.length - 4)}`;
+        connectBtn.textContent = "Billetera Conectada";
         connectBtn.disabled = true;
 
-        // Instantiate Smart Contract Object
+        // Mostrar el botón para añadir el token bBTC a MetaMask
+        if (addTokenBtn) {
+            addTokenBtn.style.display = 'inline-flex';
+        }
+
+        // Instanciar el objeto del contrato inteligente
         contract = new ethers.Contract(TOKEN_CONTRACT_ADDRESS, CONTRACT_ABI, signer);
 
-        // Fetch balances and symbol from blockchain
+        // Obtener balances, precios y símbolos de la blockchain
         await updateTokenData();
         
-        // Start live Friday time check loop
+        // Iniciar el bucle del temporizador en vivo del Faucet
         initTimerSystem();
 
     } catch (error) {
         console.error(error);
-        showMessage("Error establishing wallet connection.", "error");
+        showMessage("Error al establecer conexión con la billetera.", "error");
     }
 }
 
-// 2. READ CONTRACT BLOCKCHAIN DATA
+// ==========================================
+// 2. LEER DATOS DIRECTOS DE LA BLOCKCHAIN
+// ==========================================
 async function updateTokenData() {
+    if (!contract || !userAddress) return;
+
     try {
         const symbol = await contract.symbol();
         const decimals = await contract.decimals();
         const rawBalance = await contract.balanceOf(userAddress);
         const btcPriceRaw = await contract.getLatestBtcPrice();
         
-        // Formats balance to 18 decimals
+        // Formatear los balances usando los decimales del token (18)
         const formattedBalance = ethers.formatUnits(rawBalance, decimals);
         const formattedBtcPrice = ethers.formatUnits(btcPriceRaw, 18);
 
         tokenSymbolDisplay.textContent = symbol;
         balanceDisplay.textContent = parseFloat(formattedBalance).toFixed(4);
         
-        console.log(`Current BTC Price via Oracle: $${parseFloat(formattedBtcPrice).toLocaleString()}`);
+        console.log(`Precio actual de BTC mediante Oráculo: $${parseFloat(formattedBtcPrice).toLocaleString()}`);
     } catch (error) {
-        console.error("Error reading contract data:", error);
+        console.error("Error al leer datos del contrato:", error);
     }
 }
 
-// 3. FAUCET CHRONOGRAM / TIMER LOGIC
+// ==========================================
+// 3. LÓGICA DEL CRONOGRAMA Y CUENTA REGRESIVA
+// ==========================================
 function initTimerSystem() {
     clearInterval(timerInterval);
     checkTimeAndStatus();
@@ -101,7 +118,7 @@ async function checkTimeAndStatus() {
     if (!contract) return;
 
     try {
-        // We fetch the open state directly from the smart contract clock rules (UTC-based)
+        // Consultamos el estado de apertura basado en el reloj del contrato (Tiempo UTC)
         const [isOpen, currentFridayStart] = await contract.isFaucetWindowOpen();
 
         if (isOpen) {
@@ -110,24 +127,25 @@ async function checkTimeAndStatus() {
             return;
         }
 
-        // Calculate countdown locally if closed
+        // Si está cerrado, calculamos la cuenta regresiva localmente usando tiempos UTC estándar
         claimBtn.disabled = true;
         timerDisplay.classList.remove('hidden');
 
         const now = new Date();
         let target = new Date();
         
-        // target next Friday
+        // Calcular los días que faltan para el próximo viernes (5 = Viernes en JavaScript UTC)
         target.setDate(now.getUTCDate() + (5 - now.getUTCDay() + 7) % 7);
-        target.setUTCHours(19, 0, 0, 0); // 7:00 PM UTC
+        target.setUTCHours(19, 0, 0, 0); // Establecer a las 7:00 PM UTC
 
+        // Si ya pasó el viernes de esta semana, apuntar al de la siguiente semana
         if (now >= target) {
             target.setUTCDate(target.getUTCDate() + 7);
         }
 
         const difference = target - now;
         if (difference < 0) {
-            countdownDisplay.textContent = "--:--:--";
+            countdownDisplay.textContent = "00d 00h 00m 00s";
             return;
         }
 
@@ -136,102 +154,110 @@ async function checkTimeAndStatus() {
         const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-        countdownDisplay.textContent = `${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${segundos.toString().padStart(2, '0')}s`;
+        countdownDisplay.textContent = `${days}d ${hours.toString().padStart(2, '0')}h ${minutes.toString().padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
 
     } catch (error) {
-        console.error("Timer check failed:", error);
+        console.error("Error al verificar el temporizador:", error);
     }
 }
 
-// 4. TRIGGER FAUCET CLAIM
+// ==========================================
+// 4. EJECUTAR RECLAMO (PROCESO CON ANTIFRAUDE IP)
+// ==========================================
 async function claimTokens() {
     if (!contract || !userAddress) return;
 
     try {
-        showMessage("Requesting server IP clearance verification...", "");
+        showMessage("Verificando dispositivo e IP con el servidor seguro...", "");
         claimBtn.disabled = true;
 
-        // === INTEGRATION NOTE FOR REQUIREMENT 5 (IP PROTECTION) ===
-        // Here you must fetch the signature from your private backend server API.
-        // Example: const response = await fetch(`/api/get-signature?address=${userAddress}`);
-        // For temporary frontend testing inside Remix/MetaMask, pass an empty signature "0x" 
-        // or a manual signed payload if your ipVerifierSigner matches your wallet.
-        
-        const mockSignature = "0x"; // Replace with real server signature fetch payload
+        // Requisito 5: Petición HTTP al backend para validar IP y obtener firma criptográfica
+        const response = await fetch(BACKEND_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userAddress: userAddress })
+        });
 
-        showMessage("Sending transaction... Please confirm in your wallet.", "");
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.error || "El servidor backend denegó el reclamo por IP repetida.");
+        }
+
+        const serverSignature = data.signature;
+
+        showMessage("IP verificada. Por favor confirma la transacción en tu billetera...", "");
         
-        // Calling claimFaucet(bytes signature) on Sepolia
-        const tx = await contract.claimFaucet(mockSignature);
-        showMessage("Tx sent. Waiting for network block confirmation...", "");
+        // Llamada a la función claimFaucet del Smart Contract pasando la firma del servidor
+        const tx = await contract.claimFaucet(serverSignature);
         
+        showMessage("Transacción enviada. Esperando confirmación de la red Sepolia...", "");
+        
+        // Esperar a que la transacción se procese en un bloque
         await tx.wait();
 
-        showMessage(`Claim successful! Hash: ${tx.hash.substring(0,15)}...`, "success");
+        showMessage(`¡Reclamo exitoso! Tus tokens bBTC están en camino. Hash: ${tx.hash.substring(0,15)}...`, "success");
+        
+        // Actualizar balances en la interfaz
         await updateTokenData();
 
     } catch (error) {
         console.error(error);
         if (error.reason) {
-            showMessage(`Contract Reverted: ${error.reason}`, "error");
+            showMessage(`Contrato Revertido: ${error.reason}`, "error");
         } else {
-            showMessage("Transaction failed or was rejected.", "error");
+            showMessage(error.message || "La transacción falló o fue rechazada.", "error");
         }
         claimBtn.disabled = false;
     }
 }
 
-// Helpers
-function showMessage(text, type) {
-    messageDisplay.textContent = text;
-    messageDisplay.className = `message ${type}`;
-}
-
-// Event Listeners
-connectBtn.addEventListener('click', connectWallet);
-claimBtn.addEventListener('click', claimTokens);
-
-// Network/Account Change Auto-refresh
-if (window.ethereum) {
-    window.ethereum.on('accountsChanged', () => window.location.reload());
-    window.ethereum.on('chainChanged', () => window.location.reload());
-}
-
-// 1. Obtener la referencia del nuevo botón del DOM
-const addTokenBtn = document.getElementById('add-token-btn');
-
-// 2. Función para solicitar a MetaMask que registre el token bBTC
+// ==========================================
+// 5. SUGERIR ASSET AUTOMÁTICO EN METAMASK
+// ==========================================
 async function addTokenToMetaMask() {
     if (!window.ethereum) return;
 
     try {
-        // Ejecuta el método estándar watchAsset de la EIP-747
         const wasAdded = await window.ethereum.request({
             method: 'wallet_watchAsset',
             params: {
                 type: 'ERC20', 
                 options: {
-                    address: TOKEN_CONTRACT_ADDRESS, // Tu contrato: 0x0cD82cC8f27E012FE5C13aD4d1323C090CEfc257
-                    symbol: 'bBTC',                  // El símbolo que configuraste
-                    decimals: 18,                    // Los decimales estándar ERC20 por defecto
-                    image: 'https://cryptologos.cc', // Icono visual para la billetera
+                    address: TOKEN_CONTRACT_ADDRESS,
+                    symbol: 'bBTC',                 
+                    decimals: 18,                   
+                    image: 'https://cryptologos.cc', // Icono visual sugerido
                 },
             },
         });
 
         if (wasAdded) {
-            console.log('¡El usuario aceptó y el token bBTC fue añadido con éxito!');
+            console.log('El token bBTC fue añadido a MetaMask exitosamente.');
         } else {
-            console.log('El usuario rechazó la solicitud.');
+            console.log('El usuario rechazó añadir el token.');
         }
     } catch (error) {
-        console.error('Error al intentar añadir el token:', error);
+        console.error('Error al intentar registrar el activo:', error);
     }
 }
 
-// 3. Vincular el evento Click al botón
-addTokenBtn.addEventListener('click', addTokenToMetaMask);
+// Helpers del DOM
+function showMessage(text, type) {
+    messageDisplay.textContent = text;
+    messageDisplay.className = `message ${type}`;
+}
 
-// 4. Modificar tu función connectWallet existente para que muestre este botón al conectar
-// Busca tu función connectWallet() actual y justo dentro del bloque "try {}", al final, añade esto:
-// addTokenBtn.style.display = 'block'; 
+// Event Listeners principales
+connectBtn.addEventListener('click', connectWallet);
+claimBtn.addEventListener('click', claimTokens);
+if (addTokenBtn) {
+    addTokenBtn.addEventListener('click', addTokenToMetaMask);
+}
+
+// Recarga automática si el usuario cambia de cuenta o de red en MetaMask
+if (window.ethereum) {
+    window.ethereum.on('accountsChanged', () => window.location.reload());
+    window.ethereum.on('chainChanged', () => window.location.reload());
+}
+
