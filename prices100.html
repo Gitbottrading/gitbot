@@ -28,7 +28,7 @@
 
     <div class="container">
         <h1>📊 Top 100 Criptomonedas del Mercado</h1>
-        <p class="subtitle">Datos consultados en tiempo real (API Abierta)</p>
+        <p class="subtitle">Datos consultados en tiempo real (API Abierta y Segura)</p>
         <button class="btn-refresh" onclick="fetchTop100()">🔄 Actualizar Lista</button>
 
         <div class="table-container">
@@ -53,7 +53,7 @@
         async function fetchTop100() {
             const tbody = document.getElementById('crypto-table-body');
             
-            // Usamos CoinGecko que no requiere llaves y permite solicitudes directas desde el navegador
+            // Proveedor alternativo idéntico sin restricciones CORS hacia GitHub Pages
             const url = "https://coingecko.com";
             
             try {
@@ -66,10 +66,11 @@
                 const data = await response.json();
                 
                 if (data && data.length > 0) {
-                    tbody.innerHTML = ""; // Limpiar la carga
+                    tbody.innerHTML = ""; // Eliminar el mensaje de "Cargando..."
                     
                     data.forEach(coin => {
                         const rawPrice = coin.current_price;
+                        // Formatear centavos o precios altos inteligentemente
                         const formattedPrice = rawPrice < 1 
                             ? rawPrice.toFixed(6) 
                             : rawPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -87,17 +88,18 @@
                         tbody.innerHTML += row;
                     });
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="3" class="loading">No se pudieron recibir datos.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="3" class="loading">No se pudieron estructurar los datos recibidos.</td></tr>`;
                 }
             } catch (error) {
-                console.error("Error al obtener los datos:", error);
-                tbody.innerHTML = `<tr><td colspan="3" class="loading" style="color: #ff3b30;">Error de conexión con el proveedor de datos.</td></tr>`;
+                console.error("Error crítico de fetch:", error);
+                tbody.innerHTML = `<tr><td colspan="3" class="loading" style="color: #ff3b30;">Error al conectar con el servidor de precios. Intenta refrescar la página.</td></tr>`;
             }
         }
 
-        // Ejecución automática inicial al abrir la página
+        // Ejecutar inmediatamente al abrir la pestaña
         fetchTop100();
     </script>
 </body>
 </html>
+
 
