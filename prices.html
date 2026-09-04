@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Precios en Vivo</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #1a1a1a; color: white; text-align: center; padding: 20px; }
+        table { margin: 20px auto; border-collapse: collapse; width: 80%; max-width: 600px; background: #2a2a2a; }
+        th, td { padding: 12px; border: 1px solid #444; text-align: left; }
+        th { background-color: #00cc66; color: black; }
+        .price { font-weight: bold; color: #00ffcc; }
+        button { padding: 10px 20px; background: #00cc66; border: none; cursor: pointer; font-size: 16px; font-weight: bold; border-radius: 5px; }
+        button:hover { background: #00aa55; }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Precios de Criptomonedas en Vivo</h1>
+    <p>Datos obtenidos en tiempo real de CoinMarketCap</p>
+    <button onclick="fetchCryptoData()">🔄 Actualizar Precios</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Ranking</th>
+                <th>Nombre</th>
+                <th>Símbolo</th>
+                <th>Precio (USD)</th>
+            </tr>
+        </thead>
+        <tbody id="crypto-table">
+            <tr>
+                <td colspan="4">Cargando datos...</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchCryptoData() {
+            const tableBody = document.getElementById('crypto-table');
+            // Usamos la URL pública sin necesidad de API Key expuesta
+            const url = "https://coinmarketcap.com";
+            
+            try {
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.data) {
+                    tableBody.innerHTML = ""; // Limpiar tabla
+                    
+                    // Iterar sobre las primeras 10 monedas devueltas
+                    result.data.forEach(coin => {
+                        const row = `
+                            <tr>
+                                <td>${coin.cmc_rank || '-'}</td>
+                                <td>${coin.name}</td>
+                                <td><strong>${coin.symbol}</strong></td>
+                                <td class="price">$${coin.quote.USD.price.toFixed(2)}</td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                } else {
+                    tableBody.innerHTML = `<tr><td colspan="4">Error al procesar los datos estructurados.</td></tr>`;
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                tableBody.innerHTML = `<tr><td colspan="4">Error de conexión o bloqueo de CORS.</td></tr>`;
+            }
+        }
+
+        // Cargar datos al abrir la página
+        fetchCryptoData();
+    </script>
+</body>
+</html>
