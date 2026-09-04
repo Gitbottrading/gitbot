@@ -48,50 +48,6 @@
             </table>
         </div>
     </div>
-
-    <script>
-        async function fetchTop100() {
-            const tbody = document.getElementById('crypto-table-body');
-            // La URL exacta con el parámetro limit=100 solicitado
-            const url = "https://pro-api.coinmarketcap.com/public-api/v3/cryptocurrency/listings/latest?start=1&limit=100&convert=USD";
-            
-            try {
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                if (result.data && result.data.length > 0) {
-                    tbody.innerHTML = ""; // Limpiar el estado de carga
-                    
-                    result.data.forEach(coin => {
-                        // Formatear precios bajos adecuadamente (ej: SHIB o monedas de fracciones de centavo)
-                        const rawPrice = coin.quote.USD.price;
-                        const formattedPrice = rawPrice < 1 
-                            ? rawPrice.toFixed(6) 
-                            : rawPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-                        const row = `
-                            <tr>
-                                <td class="rank">${coin.cmc_rank || '-'}</td>
-                                <td>
-                                    <span class="coin-name">${coin.name}</span>
-                                    <span class="coin-symbol">${coin.symbol}</span>
-                                </td>
-                                <td class="price">$${formattedPrice}</td>
-                            </tr>
-                        `;
-                        tbody.innerHTML += row;
-                    });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="3" class="loading">No se pudieron procesar los datos de la API.</td></tr>`;
-                }
-            } catch (error) {
-                console.error("Error al obtener los datos:", error);
-                tbody.innerHTML = `<tr><td colspan="3" class="loading" style="color: #ff3b30;">Error de conexión. Las APIs públicas a veces restringen llamadas directas desde navegadores web (CORS).</td></tr>`;
-            }
-        }
-
-        // Ejecución automática inicial al abrir la página
-        fetchTop100();
-    </script>
+    <script src="script/prices.js"></script>
 </body>
 </html>
