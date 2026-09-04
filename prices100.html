@@ -18,7 +18,7 @@
         tr:hover { background-color: #222531; }
         .rank { font-weight: bold; color: #a1a7bb; width: 50px; }
         .coin-name { font-weight: 600; }
-        .coin-symbol { color: #58667e; margin-left: 8px; font-size: 12px; background: #222531; padding: 2px 6px; border-radius: 4px; }
+        .coin-symbol { color: #58667e; margin-left: 8px; font-size: 12px; background: #222531; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
         .price { font-weight: bold; font-family: monospace; font-size: 15px; text-align: right; }
         .loading { padding: 40px; font-size: 18px; color: #a1a7bb; }
         .text-right { text-align: right; }
@@ -28,7 +28,7 @@
 
     <div class="container">
         <h1>📊 Top 100 Criptomonedas del Mercado</h1>
-        <p class="subtitle">Datos consultados en tiempo real vía API pública de CoinMarketCap</p>
+        <p class="subtitle">Datos consultados en tiempo real (API Abierta)</p>
         <button class="btn-refresh" onclick="fetchTop100()">🔄 Actualizar Lista</button>
 
         <div class="table-container">
@@ -48,6 +48,56 @@
             </table>
         </div>
     </div>
-    <script src="script/prices.js"></script>
+
+    <script>
+        async function fetchTop100() {
+            const tbody = document.getElementById('crypto-table-body');
+            
+            // Usamos CoinGecko que no requiere llaves y permite solicitudes directas desde el navegador
+            const url = "https://coingecko.com";
+            
+            try {
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    tbody.innerHTML = ""; // Limpiar la carga
+                    
+                    data.forEach(coin => {
+                        const rawPrice = coin.current_price;
+                        const formattedPrice = rawPrice < 1 
+                            ? rawPrice.toFixed(6) 
+                            : rawPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                        const row = `
+                            <tr>
+                                <td class="rank">${coin.market_cap_rank || '-'}</td>
+                                <td>
+                                    <span class="coin-name">${coin.name}</span>
+                                    <span class="coin-symbol">${coin.symbol}</span>
+                                </td>
+                                <td class="price">$${formattedPrice}</td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="3" class="loading">No se pudieron recibir datos.</td></tr>`;
+                }
+            } catch (error) {
+                console.error("Error al obtener los datos:", error);
+                tbody.innerHTML = `<tr><td colspan="3" class="loading" style="color: #ff3b30;">Error de conexión con el proveedor de datos.</td></tr>`;
+            }
+        }
+
+        // Ejecución automática inicial al abrir la página
+        fetchTop100();
+    </script>
 </body>
 </html>
+
