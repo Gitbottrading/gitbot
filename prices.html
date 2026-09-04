@@ -3,92 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Precios en Vivo</title>
+    <title>Top Criptomonedas en Vivo</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #1a1a1a; color: white; text-align: center; padding: 20px; }
-        table { margin: 20px auto; border-collapse: collapse; width: 80%; max-width: 600px; background: #2a2a2a; }
-        th, td { padding: 12px; border: 1px solid #444; text-align: left; }
-        th { background-color: #00cc66; color: black; }
-        .price { font-weight: bold; color: #00ffcc; }
-        button { padding: 10px 20px; background: #00cc66; border: none; cursor: pointer; font-size: 16px; font-weight: bold; border-radius: 5px; }
-        button:hover { background: #00aa55; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #11141a; color: #ffffff; text-align: center; padding: 20px; margin: 0; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        h1 { color: #f3ba2f; margin-bottom: 5px; } /* Color corporativo crypto */
+        .subtitle { color: #a1a7bb; margin-bottom: 25px; font-size: 14px; }
+        .btn-refresh { padding: 12px 24px; background-color: #f3ba2f; color: black; border: none; cursor: pointer; font-size: 15px; font-weight: bold; border-radius: 8px; transition: background 0.2s; }
+        .btn-refresh:hover { background-color: #d4a122; }
+        .table-container { margin-top: 30px; overflow-x: auto; background: #171924; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 14px 18px; border-bottom: 1px solid #222531; text-align: left; }
+        th { background-color: #171924; color: #a1a7bb; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; }
+        tr:hover { background-color: #222531; }
+        .rank { font-weight: bold; color: #a1a7bb; width: 50px; }
+        .coin-name { font-weight: 600; text-transform: uppercase; }
+        .coin-symbol { color: #58667e; margin-left: 8px; font-size: 12px; background: #222531; padding: 2px 6px; border-radius: 4px; }
+        .price { font-weight: bold; font-family: monospace; font-size: 15px; text-align: right; color: #00ffcc; }
+        .loading { padding: 40px; font-size: 18px; color: #a1a7bb; }
+        .text-right { text-align: right; }
     </style>
 </head>
 <body>
 
-    <h1>🚀 Precios de Criptomonedas en Vivo</h1>
-    <p>Datos obtenidos en tiempo real de CoinMarketCap</p>
-    <button onclick="fetchCryptoData()">🔄 Actualizar Precios</button>
+    <div class="container">
+        <h1>📊 Precios Crypto en Vivo</h1>
+        <p class="subtitle">Datos directos desde el servidor global de intercambio (Sin bloqueos de CORS)</p>
+        <button class="btn-refresh" onclick="fetchBinancePrices()">🔄 Actualizar Lista</button>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Ranking</th>
-                <th>Nombre</th>
-                <th>Símbolo</th>
-                <th>Precio (USD)</th>
-            </tr>
-        </thead>
-        <tbody id="crypto-table">
-            <tr>
-                <td colspan="4">Cargando datos...</td>
-            </tr>
-        </tbody>
-    </table>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#</th>
+                        <th>Par de Mercado</th>
+                        <th class="text-right">Precio Actual (USD)</th>
+                    </tr>
+                </thead>
+                <tbody id="crypto-table-body">
+                    <tr>
+                        <td colspan="3" class="loading">Conectando con el canal de precios en vivo...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-        // 
-        <script>
-        async function fetchTop100() {
+    <script>
+        async function fetchBinancePrices() {
             const tbody = document.getElementById('crypto-table-body');
             
-            // URL original de CoinMarketCap
-            const originalUrl = "https://coinmarketcap.com";
-            
-            // Agregamos el proxy CORS gratuito por delante para evitar el bloqueo del navegador
-            const url = "https://corsproxy.io?" + encodeURIComponent(originalUrl);
+            // API pública de Binance abierta a navegadores web en GitHub Pages
+            const url = "https://binance.com";
             
             try {
                 const response = await fetch(url);
                 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error(`HTTP Error: ${response.status}`);
                 }
                 
-                const result = await response.json();
+                const data = await response.json();
                 
-                if (result.data && result.data.length > 0) {
-                    tbody.innerHTML = ""; // Limpiar el estado de carga
+                // Definimos la lista de las criptomonedas principales más buscadas contra el dólar (USDT)
+                const targetPairs = [
+                    "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT", 
+                    "ADAUSDT", "DOGEUSDT", "DOTUSDT", "MATICUSDT", "LINKUSDT",
+                    "SHIBUSDT", "LTCUSDT", "TRXUSDT", "AVAXUSDT", "UNIUSDT",
+                    "ATOMUSDT", "XLMUSDT", "BCHUSDT", "FILUSDT", "LUNCUSDT"
+                ];
+
+                // Filtrar solo los pares que nos interesan
+                const filteredData = data.filter(item => targetPairs.includes(item.symbol));
+
+                // Ordenar para mantener consistencia (ej: por precio o alfabético)
+                filteredData.sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+
+                if (filteredData.length > 0) {
+                    tbody.innerHTML = ""; // Limpiar mensaje de carga
                     
-                    result.data.forEach(coin => {
-                        const rawPrice = coin.quote.USD.price;
+                    filteredData.forEach((coin, index) => {
+                        const rawPrice = parseFloat(coin.price);
+                        
+                        // Limpiar el nombre visual quitando el sufijo "USDT"
+                        const cleanName = coin.symbol.replace("USDT", "");
+                        
+                        // Formatear decimales inteligentemente según el valor del activo
                         const formattedPrice = rawPrice < 1 
                             ? rawPrice.toFixed(6) 
                             : rawPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
                         const row = `
                             <tr>
-                                <td class="rank">${coin.cmc_rank || '-'}</td>
+                                <td class="rank">${index + 1}</td>
                                 <td>
-                                    <span class="coin-name">${coin.name}</span>
-                                    <span class="coin-symbol">${coin.symbol}</span>
+                                    <span class="coin-name">${cleanName}</span>
+                                    <span class="coin-symbol">USDT</span>
                                 </td>
-                                <td class="price">$${formattedPrice}</td>
+                                <td class="price">$ ${formattedPrice}</td>
                             </tr>
                         `;
                         tbody.innerHTML += row;
                     });
                 } else {
-                    tbody.innerHTML = `<tr><td colspan="3" class="loading">No se pudieron procesar los datos estructurados de la API.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="3" class="loading">No se encontraron los mercados principales.</td></tr>`;
                 }
             } catch (error) {
-                console.error("Error al obtener los datos:", error);
-                tbody.innerHTML = `<tr><td colspan="3" class="loading" style="color: #ff3b30;">Error al conectar con la API. Intenta nuevamente en unos segundos.</td></tr>`;
+                console.error("Error en la conexión web:", error);
+                tbody.innerHTML = `<tr><td colspan="3" class="loading" style="color: #ff3b30;">Error de comunicación de red. Revisa tu consola web.</td></tr>`;
             }
         }
 
-        // Ejecución automática inicial al abrir la página
-        fetchTop100();
+        // Carga inicial al cargar el documento
+        fetchBinancePrices();
     </script>
-
 </body>
 </html>
+
