@@ -3,52 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Faucet ERC-20</title>
-    <link rel="stylesheet" href="css/fau.css">
+    <title>Mi ERC20 Faucet Semanal</title>
+    <!-- Cargamos Ethers.js desde un CDN confiable -->
+    <script src="https://cloudflare.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
+        .container { background: white; padding: 30px; border-radius: 10px; display: inline-block; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); width: 350px;}
+        button { background-color: #28a745; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 5px; cursor: pointer; margin-top: 15px; width: 100%; }
+        button:hover { background-color: #218838; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        #status { margin-top: 20px; font-weight: bold; color: #333; font-size: 14px; word-wrap: break-word; }
+    </style>
 </head>
 <body>
-    <div class="faucet-container">
-        <header>
-            <div class="bitcoin-logo">🪙</div>
-            <h1>👾 bBitcoin Faucet</h1>
-            <p>Reclama tus tokens cada viernes a las 7:00 PM</p>
-        </header>
 
-        <main>
-            <!-- Botón de Conexión Web3 -->
-            <button id="connect-btn" class="btn-connect">Conectar Billetera</button>
-            <p id="wallet-address" class="wallet-address"></p>
+<div class="container">
+    <h2>Grifo Semanal (0.005)</h2>
+    <p>Reclamos activos <strong>cada viernes a las 7:00 PM UTC</strong></p>
+    <p>Red: <strong>Sepolia Testnet</strong></p>
+    <button id="connectBtn">1. Conectar MetaMask</button>
+    <br>
+    <button id="claimBtn" disabled>2. Reclamar 0.005 Tokens</button>
+    <div id="status">Por favor, conecta tu MetaMask.</div>
+</div>
 
-            <!-- Panel de Balance -->
-            <div class="balance-card">
-                <span class="balance-label">Tu Balance en el Contrato</span>
-                <div class="balance-amount">
-                    <span id="user-balance">0.00</span> <span class="currency" id="token-symbol">TOKEN</span>
-                    <!-- Coloca este botón justo debajo de la tarjeta de balance o donde prefieras en tu interfaz -->
-                   <button id="add-token-btn" class="btn-add-token" style="margin-top: 10px; display: none;">
-                      🦊 Añadir bBTC a MetaMask
-                   </button>
+<script>
+    // Dirección real de tu Faucet recién desplegado
+    const faucetAddress = "0x1F76256F3977448B0b6056911023DDD102ba18D2";
 
-                </div>
-            </div>
-            <!-- Zona de Reclamo -->
-            <div class="claim-box">
-                <div id="timer-display" class="timer hidden">Próximo reclamo disponible en: <span id="countdown">--:--:--</span></div>
-                <button id="claim-btn" class="btn-claim" disabled>Reclamar Tokens</button>
-                <p id="message" class="message"></p>
-            </div>
-        </main>
+    // ABI mínimo necesario para interactuar con la función del contrato
+    const faucetAbi = [
+        "function requestTokens() external"
+    ];
 
-        <section class="history-section">
-            <h3>Estado del Faucet</h3>
-            <div class="faucet-info">
-                <p>Dirección del Token: <span id="token-address-ui">0x...</span></p>
-            </div>
-        </section>
-    </div>
+    let provider, signer, faucetContract;
 
-    <!-- Incluimos Ethers.js v6 mediante CDN -->
-    <script src="https://cloudflare.com"></script>
-    <script src="script/fau.js"></script>
+    const connectBtn = document.getElementById("connectBtn");
+    const claimBtn = document.getElementById("claimBtn");
+    const statusDiv = document.getElementById("status");
+
+    // 1. Conectar MetaMask
+    connectBtn.addEventListener("click", async () => {
+        if (typeof window.ethereum !== "undefined") {
+            try {
+                // Solicitar acceso a las cuentas del usuario
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                
+                provider = new ethers.BrowserProvider(window.ethereum);
+                signer = await provider.getSigner();
+                faucetContract = new ethers.Contract(faucetAddress, faucetAbi, signer);
+
+                const userAddress = await signer.getAddress();
+                statusDiv.innerText = `Conectado: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
+                connectBtn.innerText = "Billetera Conectada";
+                connectBtn.style.backgroundColor = "#007bff";
+                claimBtn.disabled = false;
+            } catch (error) {
+                statusDiv.innerText = "Error de conexión: " + error.message;
+            }
+        } else {
+            statusDiv.innerText = "Por favor, instala MetaMask.";
+        }
+    });
+
+    // 2. Reclamar Tokens
+    claimBtn.addEventListener("click", async () => {
+        try {
+            statusDiv.style.color = "#333";
+            statusDiv.innerText = "Iniciando transacción... Confirma en MetaMask.";
+            
+            const tx = await faucetContract.requestTokens();
+            statusDiv.innerText = "Validando reclamo semanal en Sepolia...";
+            
+            await tx.wait(); // Espera a que la blockchain confirme el bloque
+            statusDiv.style.color = "green";
+            statusDiv.innerText = "¡Éxito! Has recibido tus 0.005 tokens de este ciclo.";
+        } catch (error) {
+            statusDiv.style.color = "red";
+            
+            // Tratamiento de errores específicos devueltos por los "require" de Solidity
+            if (error.message.includes("Ya reclamaste")) {
+                statusDiv.innerText = "Error: Ya has reclamado tus tokens para el ciclo de este viernes.";
+            } else if (error.message.includes("fondos suficientes")) {
+                statusDiv.innerText = "Error: El grifo no cuenta con fondos suficientes. Por favor avisa al dueño.";
+            } else {
+                statusDiv.innerText = "La transacción falló o fue cancelada de forma manual.";
+                console.error(error);
+            }
+        }
+    });
+</script>
+
 </body>
 </html>
