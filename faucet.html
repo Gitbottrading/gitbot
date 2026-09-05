@@ -13,6 +13,8 @@
         button:hover { background-color: #218838; }
         button:disabled { background-color: #6c757d; cursor: not-allowed; }
         #status { margin-top: 20px; font-weight: bold; color: #333; font-size: 14px; word-wrap: break-word; }
+        .balance-box { background-color: #e9ecef; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 14px; }
+        #faucetBalance { font-weight: bold; color: #007bff; }
     </style>
 </head>
 <body>
@@ -21,78 +23,19 @@
     <h2>Grifo Semanal (0.005)</h2>
     <p>Reclamos activos <strong>cada viernes a las 7:00 PM UTC</strong></p>
     <p>Red: <strong>Sepolia Testnet</strong></p>
+    
     <button id="connectBtn">1. Conectar MetaMask</button>
     <br>
     <button id="claimBtn" disabled>2. Reclamar 0.005 Tokens</button>
+
+    <div class="balance-box">
+        Tokens restantes en el Faucet: <span id="faucetBalance">Conecta MetaMask para ver</span>
+    </div>
+    
     <div id="status">Por favor, conecta tu MetaMask.</div>
 </div>
 
-<script>
-    // Dirección real de tu Faucet recién desplegado
-    const faucetAddress = "0x1F76256F3977448B0b6056911023DDD102ba18D2";
-
-    // ABI mínimo necesario para interactuar con la función del contrato
-    const faucetAbi = [
-        "function requestTokens() external"
-    ];
-
-    let provider, signer, faucetContract;
-
-    const connectBtn = document.getElementById("connectBtn");
-    const claimBtn = document.getElementById("claimBtn");
-    const statusDiv = document.getElementById("status");
-
-    // 1. Conectar MetaMask
-    connectBtn.addEventListener("click", async () => {
-        if (typeof window.ethereum !== "undefined") {
-            try {
-                // Solicitar acceso a las cuentas del usuario
-                await window.ethereum.request({ method: "eth_requestAccounts" });
-                
-                provider = new ethers.BrowserProvider(window.ethereum);
-                signer = await provider.getSigner();
-                faucetContract = new ethers.Contract(faucetAddress, faucetAbi, signer);
-
-                const userAddress = await signer.getAddress();
-                statusDiv.innerText = `Conectado: ${userAddress.slice(0,6)}...${userAddress.slice(-4)}`;
-                connectBtn.innerText = "Billetera Conectada";
-                connectBtn.style.backgroundColor = "#007bff";
-                claimBtn.disabled = false;
-            } catch (error) {
-                statusDiv.innerText = "Error de conexión: " + error.message;
-            }
-        } else {
-            statusDiv.innerText = "Por favor, instala MetaMask.";
-        }
-    });
-
-    // 2. Reclamar Tokens
-    claimBtn.addEventListener("click", async () => {
-        try {
-            statusDiv.style.color = "#333";
-            statusDiv.innerText = "Iniciando transacción... Confirma en MetaMask.";
-            
-            const tx = await faucetContract.requestTokens();
-            statusDiv.innerText = "Validando reclamo semanal en Sepolia...";
-            
-            await tx.wait(); // Espera a que la blockchain confirme el bloque
-            statusDiv.style.color = "green";
-            statusDiv.innerText = "¡Éxito! Has recibido tus 0.005 tokens de este ciclo.";
-        } catch (error) {
-            statusDiv.style.color = "red";
-            
-            // Tratamiento de errores específicos devueltos por los "require" de Solidity
-            if (error.message.includes("Ya reclamaste")) {
-                statusDiv.innerText = "Error: Ya has reclamado tus tokens para el ciclo de este viernes.";
-            } else if (error.message.includes("fondos suficientes")) {
-                statusDiv.innerText = "Error: El grifo no cuenta con fondos suficientes. Por favor avisa al dueño.";
-            } else {
-                statusDiv.innerText = "La transacción falló o fue cancelada de forma manual.";
-                console.error(error);
-            }
-        }
-    });
-</script>
-
+<!-- Cargamos la lógica desde el archivo separado -->
+<script src="script/faucet.js"></script>
 </body>
 </html>
