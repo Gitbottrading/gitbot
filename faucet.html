@@ -4,38 +4,129 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi ERC20 Faucet Semanal</title>
-    <!-- Cargamos Ethers.js desde un CDN confiable -->
+    <!-- Cargamos Ethers.js v6 de forma oficial desde CDN -->
     <script src="https://cloudflare.com"></script>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
-        .container { background: white; padding: 30px; border-radius: 10px; display: inline-block; box-shadow: 0px 4px 10px rgba(0,0,0,0.1); width: 350px;}
-        button { background-color: #28a745; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 5px; cursor: pointer; margin-top: 15px; width: 100%; }
-        button:hover { background-color: #218838; }
-        button:disabled { background-color: #6c757d; cursor: not-allowed; }
-        #status { margin-top: 20px; font-weight: bold; color: #333; font-size: 14px; word-wrap: break-word; }
-        .balance-box { background-color: #e9ecef; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 14px; }
-        #faucetBalance { font-weight: bold; color: #007bff; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background: #ffffff;
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 10px;
+        }
+        .info-box {
+            background-color: #eef2f7;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+        input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 16px;
+            background-color: #f8fafc;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background-color: #fff;
+        }
+        .btn-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+        #connectBtn {
+            background-color: #f59e0b;
+            color: white;
+        }
+        #connectBtn:hover { background-color: #d97706; }
+        
+        #claimBtn {
+            background-color: #3b82f6;
+            color: white;
+        }
+        #claimBtn:hover { background-color: #2563eb; }
+        #claimBtn:disabled {
+            background-color: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+        
+        #addTokenBtn {
+            background-color: #10b981;
+            color: white;
+        }
+        #addTokenBtn:hover { background-color: #059669; }
+
+        #status {
+            padding: 12px;
+            border-radius: 6px;
+            background-color: #f8fafc;
+            border-left: 4px solid #94a3b8;
+            font-weight: 500;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
     <h2>Grifo Semanal (0.005)</h2>
-    <p>Reclamos activos <strong>cada viernes a las 7:00 PM UTC</strong></p>
-    <p>Red: <strong>Sepolia Testnet</strong></p>
     
-    <button id="connectBtn">1. Conectar MetaMask</button>
-    <br>
-    <button id="claimBtn" disabled>2. Reclamar 0.005 Tokens</button>
-
-    <div class="balance-box">
-        Tokens restantes en el Faucet: <span id="faucetBalance">Conecta MetaMask para ver</span>
+    <div class="info-box">
+        <p><strong>Frecuencia:</strong> Reclamos activos cada viernes a las 7:00 PM UTC</p>
+        <p><strong>Red:</strong> Sepolia Testnet</p>
+        <p><strong>Tokens restantes en el Faucet:</strong> <span id="faucetBalance" style="font-weight: bold; color: #2563eb;">Cargando...</span></p>
     </div>
-    
-    <div id="status">Por favor, conecta tu MetaMask.</div>
-</div>
 
-<!-- Cargamos la lógica desde el archivo separado -->
-<script src="script/faucet.js"></script>
+    <!-- Campo para pegar o autocompletar billetera -->
+    <div class="form-group">
+        <label for="walletAddress">Dirección de la billetera de destino:</label>
+        <input type="text" id="walletAddress" placeholder="Introduce o pega tu dirección 0x...">
+    </div>
+
+    <!-- Botonera interactiva -->
+    <div class="btn-container">
+        <button id="connectBtn">1. Conectar MetaMask</button>
+        <button id="claimBtn" disabled>2. Reclamar 0.005 Tokens</button>
+        <button id="addTokenBtn">➕ Añadir Token a Wallet</button>
+    </div>
+
+    <!-- Mensajes de estado del sistema -->
+    <div id="status">Por favor, conecta tu MetaMask para comenzar.</div>
+
+    <!-- Vinculamos el archivo JavaScript externo -->
+    <script src="Javascript/faucet.js"></script>
 </body>
 </html>
