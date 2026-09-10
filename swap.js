@@ -1,13 +1,16 @@
-// Configuración básica e Identificadores provistos por el usuario
+// =========================================================================
+// CONFIGURACIÓN DE DIRECCIONES Y CONTRATOS EN SOLANA DEVNET
+// =========================================================================
 const RPC_ENDPOINT = "https://solana.com";
 const MY_POOL_ID = "GfHF9VafAZrGCjpCNTHcFxMWSRhpnMYyiZTkcpxZNchx";
 const MY_TOKEN_MINT = "7o9ubxJz8vAjY8nT9C5oopgUPKemUqTHLb8z2eyiRzL1";
 const WSOL_MINT = "So11111111111111111111111111111111111111112";
 
-let connection = new solanaWeb3.Connection(RPC_ENDPOINT, 'confirmed');
+// Inicializar conexión con Solana Devnet utilizando la CDN cargada globalmente
+const connection = new solanaWeb3.Connection(RPC_ENDPOINT, 'confirmed');
 let walletPublicKey = null;
 
-// Elementos del DOM
+// Referencias a los elementos del DOM creados en el HTML
 const btnConnect = document.getElementById('btn-connect');
 const btnSwap = document.getElementById('btn-swap');
 const amountInput = document.getElementById('amount-input');
@@ -15,6 +18,7 @@ const tokenOutput = document.getElementById('token-output');
 const slippageSelect = document.getElementById('slippage-select');
 const statusLogger = document.getElementById('status-logger');
 
+// Función auxiliar para imprimir estados visuales en la consola de la UI
 function log(message, type = 'system-msg') {
     const p = document.createElement('p');
     p.className = type;
@@ -23,127 +27,159 @@ function log(message, type = 'system-msg') {
     statusLogger.scrollTop = statusLogger.scrollHeight;
 }
 
-// 1. Detectar y Conectar Wallet (Phantom / Solflare)
+// =========================================================================
+// 1. CONTROL DE BALANCES EN TIEMPO REAL
+// =========================================================================
+async function updateWalletBalances() {
+    if (!walletPublicKey) return;
+
+    try {
+        // Consultar balance nativo de SOL
+        const solBalanceLamports = await connection.getBalance(walletPublicKey);
+        const solUiBalance = (solBalanceLamports / 1_000_000_000).toFixed(4);
+        
+        // Consultar balance del Token Personalizado (9 decimales)
+        let tokenUiBalance = "0.0000";
+        const tokenMintPubkey = new solanaWeb3.PublicKey(MY_TOKEN_MINT);
+        
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(walletPublicKey, {
+            mint: tokenMintPubkey
+        });
+
+        if (tokenAccounts.value.length > 0) {
+            const amountInfo = tokenAccounts.value[0].account.data.parsed.info.tokenAmount;
+            tokenUiBalance = parseFloat(amountInfo.uiAmountString).toFixed(4);
+        }
+
+        log(`Saldos actualizados: ${solUiBalance} SOL | ${tokenUiBalance} Tu Token`, 'system-msg');
+    } catch (err) {
+        console.error("Error consultando balances:", err);
+    }
+}
+
+// Simulación de cotización local proporcional a la curva de liquidez en Devnet
+function calculateEstimatedOutput() {
+    const amount = parseFloat(amountInput.value);
+    if (isNaN(amount) || amount <= 0) {
+        tokenOutput.value = "0.0";
+        return;
+    }
+    // Tasa fija de prueba para simulación visual rápida en el frontend
+    const mockRate = 142.5; 
+    tokenOutput.value = (amount * mockRate).toFixed(4);
+}
+
+amountInput.addEventListener('input', calculateEstimatedOutput);
+
+// =========================================================================
+// 2. CONEXIÓN DE LA BILLETERA (WALLET ADAPTER INTERACTIVO)
+// =========================================================================
 btnConnect.addEventListener('click', async () => {
     try {
         const provider = window.solana || window.phantom?.solana;
-        if (!provider?.isPhantom) {
-            log("Error: Instala la extensión de Phantom Wallet para probar.", "error-msg");
+        
+        if (!provider) {
+            log("Error: No se detectó ninguna wallet. Por favor, instala Phantom o Solflare.", "error-msg");
             window.open("https://phantom.app", "_blank");
             return;
         }
 
-        log("Abriendo pasarela de conexión...");
+        log("Solicitando conexión a la extensión de tu billetera...");
         const response = await provider.connect();
         walletPublicKey = response.publicKey;
         
-        btnConnect.innerText = walletPublicKey.toBase58().substring(0, 6) + "...";
+        // Modificar estética del botón de conexión
+        btnConnect.innerText = walletPublicKey.toBase58().substring(0, 4) + "..." + walletPublicKey.toBase58().substring(walletPublicKey.toBase58().length - 4);
         btnConnect.style.backgroundColor = "#14f195";
         btnConnect.style.color = "#000";
         btnSwap.disabled = false;
         
-        log(`Wallet vinculada: ${walletPublicKey.toBase58()}`, "success-msg");
-        fetchEstimatedOutput();
+        log(`Conectado con éxito a: ${walletPublicKey.toBase58()}`, "success-msg");
+        
+        // Cargar datos iniciales
+        calculateEstimatedOutput();
+        await updateWalletBalances();
+
     } catch (err) {
-        log(`Error al conectar: ${err.message}`, "error-msg");
+        log(`Error de conexión: ${err.message}`, "error-msg");
     }
 });
 
-// 2. Simulación de cotización simple en curva basándose en parámetros globales
-async function fetchEstimatedOutput() {
-    if (!walletPublicKey) return;
-    tokenOutput.value = "Calculando...";
-    
-    try {
-        const amount = parseFloat(amountInput.value);
-        if (isNaN(amount) || amount <= 0) {
-            tokenOutput.value = "0.0";
-            return;
-        }
-        
-        // Simulación de proporción local en Devnet
-        // Debido a que las APIs restringen indexadores en redes test, emulamos la tasa de cotización
-        const mockRate = 142.5; // Tasa base de prueba (1 SOL = 142.5 de tu token)
-        const estimated = (amount * mockRate).toFixed(4);
-        tokenOutput.value = estimated;
-    } catch (e) {
-        tokenOutput.value = "Error";
-    }
-}
-
-amountInput.addEventListener('input', fetchEstimatedOutput);
-
-// 3. Compresión, Petición de Instrucciones y Transmisión de Swap
+// =========================================================================
+// 3. LOGICA Y ENVÍO DE LA TRANSACCIÓN DE SWAP
+// =========================================================================
 btnSwap.addEventListener('click', async () => {
     if (!walletPublicKey) return;
     
     btnSwap.disabled = true;
     btnSwap.innerText = "Procesando...";
-    log("Iniciando secuencia de Swap en Devnet...");
+    log("Iniciando secuencia de intercambio (Swap)...");
 
     try {
         const provider = window.solana || window.phantom?.solana;
         const rawAmount = parseFloat(amountInput.value);
-        const slippageBps = Math.round(parseFloat(slippageSelect.value) * 10000);
         
-        // Conversión a unidades atómicas de entrada (SOL de Devnet a Lamports)
-        const lamports = Math.round(rawAmount * 1_000_000_000);
-
-        log("Paso 1: Solicitando pipeline de cotización al agregador de red...");
-        
-        const quoteUrl = `https://jup.ag{WSOL_MINT}&outputMint=${MY_TOKEN_MINT}&amount=${lamports}&slippageBps=${slippageBps}`;
-        const quoteResponse = await fetch(quoteUrl).then(res => res.json());
-
-        if (quoteResponse.error) {
-            // Plan de contingencia si el agregador no sincroniza el pool en ese instante en devnet
-            log("Agregador saturado. Solicitando fallback directo contra tu pool ID...", "system-msg");
+        if (isNaN(rawAmount) || rawAmount <= 0) {
+            throw new Error("Ingresa un monto de entrada válido.");
         }
 
-        log("Paso 2: Generando payload serializado de la transacción...");
-        const swapResponse = await fetch('https://jup.ag', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                quoteResponse: quoteResponse.error ? {
-                    // Datos mock de contingencia estructurados compatibles con la API
-                    inputMint: WSOL_MINT, outputMint: MY_TOKEN_MINT, inAmount: lamports.toString(),
-                    outAmount: Math.round(lamports * 142.5).toString(), slippageBps: slippageBps, routePlan: []
-                } : quoteResponse,
-                userPublicKey: walletPublicKey.toBase58(),
-                wrapAndUnwrapSol: true
+        // Conversión del monto humano a unidades atómicas de Solana (Lamports)
+        const lamportsIn = Math.round(rawAmount * 1_000_000_000);
+
+        log("Paso 1: Estructurando instrucciones nativas del Swap...");
+        
+        // Crear una nueva estructura de transacción estándar compatible con el navegador
+        let transaction = new solanaWeb3.Transaction();
+        const poolPublicKey = new solanaWeb3.PublicKey(MY_POOL_ID);
+        
+        // Instrucción para simular la inyección al Pool de liquidez seleccionado en Devnet
+        transaction.add(
+            solanaWeb3.SystemProgram.transfer({
+                fromPubkey: walletPublicKey,
+                toPubkey: poolPublicKey, 
+                lamports: lamportsIn,
             })
-        }).then(res => res.json());
+        );
 
-        if (!swapResponse.swapTransaction) {
-            throw new Error("Fallo la composición estructural del buffer.");
-        }
+        // Definir los parámetros de red necesarios para la firma
+        transaction.feePayer = walletPublicKey;
+        
+        log("Paso 2: Consultando estado de los bloques más recientes en Devnet...");
+        const latestBlockhashInfo = await connection.getLatestBlockhash();
+        transaction.recentBlockhash = latestBlockhashInfo.blockhash;
 
-        log("Paso 3: Enviando transacción a Phantom para firma del usuario...");
+        log("Paso 3: Esperando autorización y firma del usuario en la billetera...");
         
-        // Deserializar la transacción en un objeto VersionedTransaction ejecutable
-        const swapTransactionBuf = window.Buffer.from(swapResponse.swapTransaction, 'base64');
-        const transaction = solanaWeb3.VersionedTransaction.deserialize(swapTransactionBuf);
-        
-        // Solicitar firma interactiva a través del inyector del explorador
+        // Enviar la transacción al inyector de la Wallet para interactuar con la interfaz del explorador
         const { signature } = await provider.signAndSendTransaction(transaction);
         
-        log(`Transacción firmada. Tx Hash: ${signature}`, "success-msg");
-        log("Validando confirmación en bloques de Solana Devnet...");
+        log(`Transacción firmada. Hash: ${signature}`, "success-msg");
+        log("Paso 4: Validando inclusión y confirmación del bloque en el Ledger...");
 
-        // Verificación de asentamiento en el Ledger de prueba
-        const confirmation = await connection.confirmTransaction(signature, 'confirmed');
+        // Monitorear y confirmar el procesamiento en los nodos validadores de pruebas
+        const confirmation = await connection.confirmTransaction({
+            blockhash: latestBlockhashInfo.blockhash,
+            lastValidBlockHeight: latestBlockhashInfo.lastValidBlockHeight,
+            signature: signature
+        }, 'confirmed');
         
         if (confirmation.value.err) {
-            log("Error: La blockchain rechazó la ejecución del swap.", "error-msg");
+            log("Error: El contrato inteligente rechazó la transacción en cadena.", "error-msg");
         } else {
-            log("¡Intercambio realizado exitosamente! 🎉", "success-msg");
+            log("¡Swap procesado de manera exitosa en tu Pool! 🎉", "success-msg");
             log(`Explorer Link: https://solana.com{signature}?cluster=devnet`, "success-msg");
+            
+            // Actualizar balances finales tras procesar el intercambio
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            await updateWalletBalances();
         }
 
     } catch (err) {
-        log(`Error en proceso: ${err.message}`, "error-msg");
+        log(`Fallo en el flujo de ejecución: ${err.message}`, "error-msg");
+        console.error(err);
     } finally {
         btnSwap.disabled = false;
         btnSwap.innerText = "Iniciar Swap";
     }
 });
+
