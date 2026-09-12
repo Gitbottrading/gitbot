@@ -1,0 +1,3 @@
+📁 contracts/
+  📄 CustomRebaseToken.sol   <-- El contrato inteligente (Lógica y Rebase)
+  📄 index.html              <-- La interfaz de usuario (DApp)
