@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fábrica de Tokens EVM & Swap</title>
+    <script src="https://cloudflare.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121214; color: #fff; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: #202024; padding: 20px; border-radius: 8px; }
+        input, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 4px; border: none; }
+        input { background: #323238; color: #fff; }
+        button { background: #00b37e; color: #fff; font-weight: bold; cursor: pointer; }
+        button:hover { background: #00875f; }
+        .status { color: #00b37e; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Fábrica de Tokens con Rebase</h2>
+    <button id="connectBtn">Conectar Billetera</button>
+    <p id="walletAddress" style="font-size: 12px; color: #a9a9b2;"></p>
+
+    <form id="tokenForm">
+        <label>Nombre del Activo</label>
+        <input type="text" id="name" placeholder="Ej. Rebase Gold" required>
+
+        <label>Símbolo</label>
+        <input type="text" id="symbol" placeholder="Ej. RBG" required>
+
+        <label>Cantidad de tokens (Max 500,000,000)</label>
+        <input type="number" id="amount" max="500000000" placeholder="Ej. 100000000" required>
+
+        <label>Decimales (Segundos Blockchain, Ej: 18)</label>
+        <input type="number" id="decimals" value="18" required>
+
+        <label>Enlace de Imagen (URL)</label>
+        <input type="url" id="logo" placeholder="https://ejemplo.com">
+
+        <label>Página Web</label>
+        <input type="url" id="web" placeholder="https://ejemplo.com">
+        
+        <label>Liquidez Inicial en ETH/BNB para Auto-Swap (Opcional)</label>
+        <input type="text" id="ethLiquidity" placeholder="Ej. 0.1">
+
+        <button type="submit" id="deployBtn" disabled>Fabricar y Listar Token</button>
+    </form>
+
+    <div class="status" id="status"></div>
+</div>
+
+<script>
+    let provider;
+    let signer;
+    const routerAddress = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D"; // Uniswap V2 Router en Ethereum/Sepolia (Cambiar según red)
+
+    // Pegar aquí el Bytecode compilado del contrato CustomRebaseToken
+    const tokenBytecode = "0x60806040..."; 
+    const tokenAbi = [ /* ABI generado al compilar el contrato anterior */ ];
+
+    document.getElementById('connectBtn').addEventListener('click', async () => {
+        if (window.ethereum) {
+            provider = new ethers.BrowserProvider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            signer = await provider.getSigner();
+            const address = await signer.getAddress();
+            document.getElementById('walletAddress').innerText = `Conectado: ${address}`;
+            document.getElementById('deployBtn').disabled = false;
+        } else {
+            alert("Por favor instala MetaMask");
+        }
+    });
+
+    document.getElementById('tokenForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerText = "Desplegando token y listando en Swap...";
+
+        try {
+            const name = document.getElementById('name').value;
+            const symbol = document.getElementById('symbol').value;
+            const amount = document.getElementById('amount').value;
+            const decimals = document.getElementById('decimals').value;
+            const logo = document.getElementById('logo').value;
+            const web = document.getElementById('web').value;
+            const ethValue = document.getElementById('ethLiquidity').value || "0";
+
+            const factory = new ethers.ContractFactory(tokenAbi, tokenBytecode, signer);
+            
+            // Deploy pasando parámetros exigidos por el constructor
+            const contract = await factory.deploy(
+                name, symbol, decimals, amount, logo, web, await signer.getAddress(), routerAddress,
+                { value: ethers.parseEther(ethValue) }
+            );
+
+            await contract.waitForDeployment();
+            statusDiv.innerText = `¡Éxito! Token listado en: ${await contract.getAddress()}`;
+        } catch (error) {
+            console.error(error);
+            statusDiv.innerText = "Error en la creación del token.";
+        }
+    });
+</script>
+</body>
+</html>
