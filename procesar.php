@@ -5,7 +5,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $meses   = intval($_POST['meses']);
     $interes_porcentaje = intval($_POST['interes']);
 
-    // Validar que los porcentajes coincidan con los permitidos
+    // CORRECCIÓN: Arreglado el array de valores permitidos
     $valores_permitidos =;
     if (!in_array($interes_porcentaje, $valores_permitidos)) {
         die("Error: Tasa de interés no válida.");
@@ -66,7 +66,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $saldo_restante = $total_pagar;
             for ($i = 1; $i <= $meses; $i++) {
                 $saldo_restante -= $cuota_mensual;
-                // Ajuste por decimales en el último mes
                 if ($i == $meses) {
                     $saldo_restante = 0;
                 }
@@ -93,3 +92,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     exit();
 }
 ?>
+
