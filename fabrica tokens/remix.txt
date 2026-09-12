@@ -6,3 +6,23 @@
 +++++++ROUTER+++++BNB+++++++
 
  Direcciones del Router de PancakeSwap para BNB ChainDebes guardar estas direcciones, ya que las usaremos en los parámetros del contrato:Mainnet (Red Principal BNB): 0x10ED43C718714eb63d5aA57B78B54704E256024ETestnet (Red de Pruebas BSC): 0xD99D1c33F9fC3444f8101754aBC46c52416550D1
+
++++++++INSTRUCCIONES++++++++
+
+Pasos en Remix para Compilar y Desplegar la DAppSigue estos pasos ordenados dentro de Remix para poner en marcha la aplicación:
+
+Paso A: Compilar el ContratoHaz clic en el archivo CustomRebaseToken.sol.
+Ve a la pestaña Solidity Compiler 
+(icono del compilador en la barra izquierda).
+Selecciona la versión del compilador 0.8.20 o superior.
+
+Haz clic en Compile CustomRebaseToken.sol.Al finalizar, ve a la parte inferior de esa misma pestaña, busca el botón Compilation Details y copia el ABI y el Bytecode (los necesitarás para el archivo HTML).
+
+Paso B: Ejecutar la Interfaz de la DApp desde RemixAbre tu archivo index.html en Remix y pega el código del frontend provisto anteriormente.
+Reemplaza las variables tokenBytecode y tokenAbi con los datos que copiaste en el Paso A.
+
+Asegúrate de definir el routerAddress según vayas a probar en la Testnet o Mainnet de BNB.
+Para ver y usar tu página web directamente en Remix, instala la extensión interna de Remix llamada "DApp dGeth / Web Server" o simplemente haz clic derecho sobre index.html y selecciona Run o usa un plugin de servidor web como Remix Live Server si lo tienes activo.
+
+Paso C: Conexión con MetaMaskEn tu billetera MetaMask, cambia la red a BNB Smart Chain (o BSC Testnet).
+Cuando abras la interfaz de tu DApp mediante Remix, haz clic en Conectar Billetera, rellena el formulario de creación y añade la cantidad de BNB deseada si quieres generar la pool de liquidez instantánea en PancakeSwap.
