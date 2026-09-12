@@ -1,3 +1,8 @@
 📁 contracts/
   📄 CustomRebaseToken.sol   <-- El contrato inteligente (Lógica y Rebase)
   📄 index.html              <-- La interfaz de usuario (DApp)
+
+
++++++++ROUTER+++++BNB+++++++
+
+ Direcciones del Router de PancakeSwap para BNB ChainDebes guardar estas direcciones, ya que las usaremos en los parámetros del contrato:Mainnet (Red Principal BNB): 0x10ED43C718714eb63d5aA57B78B54704E256024ETestnet (Red de Pruebas BSC): 0xD99D1c33F9fC3444f8101754aBC46c52416550D1
