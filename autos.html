@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista Circular de Marcas de Lujo</title>
+    <title>Marcas de Lujo Interactivas</title>
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -15,19 +15,19 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
 
         h1 {
             color: #d4af37;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
+            font-size: 2rem;
         }
 
-        /* Contenedor del círculo */
+        /* Contenedor principal del círculo */
         .circle-container {
             position: relative;
-            width: 500px;
-            height: 500px;
+            width: 550px;
+            height: 550px;
             border: 2px dashed #333333;
             border-radius: 50%;
             display: flex;
@@ -35,23 +35,59 @@
             align-items: center;
         }
 
-        /* Centro del círculo */
+        /* Panel Central Dinámico */
         .circle-center {
-            width: 120px;
-            height: 120px;
-            background: radial-gradient(circle, #2a2a2a, #1a1a1a);
+            width: 220px;
+            height: 220px;
+            background: #1a1a1a;
             border: 3px solid #d4af37;
             border-radius: 50%;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            font-weight: bold;
-            color: #d4af37;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
             z-index: 10;
+            padding: 15px;
+            text-align: center;
+            box-sizing: border-box;
         }
 
-        /* Elementos de la lista */
+        /* Imagen del logotipo redondeada */
+        .center-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: white;
+            object-fit: contain;
+            padding: 5px;
+            border: 2px solid #d4af37;
+            margin-bottom: 8px;
+        }
+
+        .center-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #d4af37;
+            margin: 0 0 8px 0;
+        }
+
+        /* Filas de datos informativos */
+        .info-row {
+            font-size: 0.75rem;
+            color: #cccccc;
+            margin: 2px 0;
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .info-row strong {
+            color: #ffffff;
+        }
+
+        /* Botones de las marcas alrededor */
         .circle-item {
             position: absolute;
             width: 110px;
@@ -62,45 +98,77 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             font-weight: 600;
             text-align: center;
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease, background-color 0.3s ease;
+            transition: all 0.3s ease;
+            cursor: pointer;
             
-            /* Fórmula matemática CSS para posicionar en círculo (36 grados por elemento) */
+            /* Distribución angular (360° / 10 marcas = 36deg) */
             --angle: calc(var(--i) * 36deg);
-            transform: rotate(var(--angle)) translate(220px) rotate(calc(-1 * var(--angle)));
+            transform: rotate(var(--angle)) translate(240px) rotate(calc(-1 * var(--angle)));
         }
 
-        .circle-item:hover {
+        .circle-item:hover, .circle-item.active {
             background-color: #d4af37;
             color: #121212;
-            transform: rotate(var(--angle)) translate(230px) rotate(calc(-1 * var(--angle))) scale(1.1);
-            cursor: pointer;
+            transform: rotate(var(--angle)) translate(250px) rotate(calc(-1 * var(--angle))) scale(1.1);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.6);
         }
     </style>
 </head>
 <body>
 
-    <h1>Top 10 Marcas</h1>
+    <h1>Explorador de Marcas</h1>
 
     <div class="circle-container">
-        <div class="circle-center">LUJO</div>
+        <!-- El centro mostrará la información de la marca activa -->
+        <div class="circle-center" id="display-panel">
+            <img id="brand-logo" class="center-img" src="https://clearbit.com" alt="Logo">
+            <h3 id="brand-name" class="center-title">Hummer</h3>
+            <div class="info-row" id="row-1"><strong>Origen:</strong> EE. UU.</div>
+            <div class="info-row" id="row-2"><strong>Especialidad:</strong> SUVs Todo Terreno</div>
+            <div class="info-row" id="row-3"><strong>Modelo Icono:</strong> Hummer EV</div>
+        </div>
         
-        <!-- Se usa la variable --i para calcular la posición exacta de cada una -->
-        <div class="circle-item" style="--i: 0;">Aston Martin</div>
-        <div class="circle-item" style="--i: 1;">Bentley</div>
-        <div class="circle-item" style="--i: 2;">Bugatti</div>
-        <div class="circle-item" style="--i: 3;">Ferrari</div>
-        <div class="circle-item" style="--i: 4;">Hummer</div>
-        <div class="circle-item" style="--i: 5;">Jeep</div>
-        <div class="circle-item" style="--i: 6;">Lamborghini</div>
-        <div class="circle-item" style="--i: 7;">Maserati</div>
-        <div class="circle-item" style="--i: 8;">Porsche</div>
-        <div class="circle-item" style="--i: 9;">Rolls-Royce</div>
+        <!-- Elementos del círculo con sus datos embebidos en atributos 'data-*' -->
+        <div class="circle-item active" style="--i: 0;" data-name="Hummer" data-img="https://clearbit.com" data-r1="EE. UU." data-r2="SUVs Todo Terreno" data-r3="Hummer EV" onmouseover="showInfo(this)">Hummer</div>
+        <div class="circle-item" style="--i: 1;" data-name="Jeep" data-img="https://clearbit.com" data-r1="EE. UU." data-r2="4x4 Aventureros" data-r3="Wrangler" onmouseover="showInfo(this)">Jeep</div>
+        <div class="circle-item" style="--i: 2;" data-name="Aston Martin" data-img="https://clearbit.com" data-r1="Reino Unido" data-r2="Gran Turismo Deportivos" data-r3="DB12" onmouseover="showInfo(this)">Aston Martin</div>
+        <div class="circle-item" style="--i: 3;" data-name="Bentley" data-img="https://clearbit.com" data-r1="Reino Unido" data-r2="Alta Gama Artesanal" data-r3="Continental GT" onmouseover="showInfo(this)">Bentley</div>
+        <div class="circle-item" style="--i: 4;" data-name="Bugatti" data-img="https://clearbit.com" data-r1="Francia" data-r2="Hiperdeportivos" data-r3="Chiron / Tourbillon" onmouseover="showInfo(this)">Bugatti</div>
+        <div class="circle-item" style="--i: 5;" data-name="Ferrari" data-img="https://clearbit.com" data-r1="Italia" data-r2="Superdeportivos de Carrera" data-r3="SF90 Stradale" onmouseover="showInfo(this)">Ferrari</div>
+        <div class="circle-item" style="--i: 6;" data-name="Lamborghini" data-img="https://clearbit.com" data-r1="Italia" data-r2="Diseño Agresivo y V12" data-r3="Revuelto" onmouseover="showInfo(this)">Lamborghini</div>
+        <div class="circle-item" style="--i: 7;" data-name="Maserati" data-img="https://clearbit.com" data-r1="Italia" data-r2="Lujo Deportivo Italiano" data-r3="MC20" onmouseover="showInfo(this)">Maserati</div>
+        <div class="circle-item" style="--i: 8;" data-name="Porsche" data-img="https://clearbit.com" data-r1="Alemania" data-r2="Ingeniería y Precisión" data-r3="911 Carrera" onmouseover="showInfo(this)">Porsche</div>
+        <div class="circle-item" style="--i: 9;" data-name="Rolls-Royce" data-img="https://clearbit.com" data-r1="Reino Unido" data-r2="El Lujo Supremo" data-r3="Phantom" onmouseover="showInfo(this)">Rolls-Royce</div>
     </div>
 
+    <script>
+        function showInfo(element) {
+            // Remover clase activa de todos los elementos
+            document.querySelectorAll('.circle-item').forEach(item => item.classList.remove('active'));
+            
+            // Añadir clase activa al elemento actual
+            element.classList.add('active');
+
+            // Extraer los datos informativos del elemento
+            const name = element.getAttribute('data-name');
+            const imgUrl = element.getAttribute('data-img');
+            const r1 = element.getAttribute('data-r1');
+            const r2 = element.getAttribute('data-r2');
+            const r3 = element.getAttribute('data-r3');
+
+            // Actualizar el panel central
+            document.getElementById('brand-logo').src = imgUrl;
+            document.getElementById('brand-name').innerText = name;
+            document.getElementById('row-1').innerHTML = `<strong>Origen:</strong> ${r1}`;
+            document.getElementById('row-2').innerHTML = `<strong>Especialidad:</strong> ${r2}`;
+            document.getElementById('row-3').innerHTML = `<strong>Modelo Icono:</strong> ${r3}`;
+        }
+    </script>
 </body>
 </html>
+
 
