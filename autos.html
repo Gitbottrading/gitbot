@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juego: Adivina la Marca de Lujo</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #d4af37;
+            margin-bottom: 10px;
+        }
+        .score-container {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #aaaaaa;
+        }
+        .game-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #2a2a2a;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .logo-frame {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 25px auto;
+            border-radius: 50%; /* Forma redondeada requerida */
+            overflow: hidden;
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #d4af37;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+        .logo-frame img {
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .btn {
+            background-color: #3a3a3a;
+            color: white;
+            border: 2px solid #555555;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background-color: #d4af37;
+            color: #1a1a1a;
+            border-color: #d4af37;
+        }
+        .feedback {
+            margin-top: 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            height: 30px;
+        }
+        .correct { color: #4caf50; }
+        .incorrect { color: #f44336; }
+        .next-btn {
+            margin-top: 20px;
+            background-color: #d4af37;
+            color: black;
+            display: none;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Adivina la Marca de Lujo</h1>
+    <div class="score-container">
+        Puntuación: <span id="score">0</span> / <span id="total">0</span>
+    </div>
+
+    <div class="game-container">
+        <div class="logo-frame">
+            <img id="logo-img" src="" alt="Logotipo de auto">
+        </div>
+
+        <div class="options-grid" id="options-box">
+            <!-- Los botones se generarán con JavaScript -->
+        </div>
+
+        <div class="feedback" id="feedback-text"></div>
+        <button class="btn next-btn" id="next-button" onclick="nextQuestion()">Siguiente Marca</button>
+    </div>
+
+    <script>
+        // Lista de 10 marcas de lujo con sus enlaces externos de logotipos oficiales
+        const brands = [
+            { name: "Hummer", img: "https://clearbit.com" },
+            { name: "Jeep", img: "https://clearbit.com" },
+            { name: "Ferrari", img: "https://clearbit.com" },
+            { name: "Lamborghini", img: "https://clearbit.com" },
+            { name: "Porsche", img: "https://clearbit.com" },
+            { name: "Rolls-Royce", img: "https://clearbit.com" },
+            { name: "Bentley", img: "https://clearbit.com" },
+            { name: "Aston Martin", img: "https://clearbit.com" },
+            { name: "Maserati", img: "https://clearbit.com" },
+            { name: "Bugatti", img: "https://clearbit.com" }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function loadQuestion() {
+            if (currentIndex >= brands.length) {
+                // Fin del juego
+                document.querySelector(".game-container").innerHTML = `
+                    <h2>¡Juego Terminado!</h2>
+                    <p style="font-size: 1.5rem;">Tu puntuación final es: <strong>${score} de ${brands.length}</strong></p>
+                    <button class="btn" onclick="location.reload()" style="margin-top:20px; width:100%;">Jugar de Nuevo</button>
+                `;
+                return;
+            }
+
+            const currentBrand = brands[currentIndex];
+            document.getElementById("logo-img").src = currentBrand.img;
+            document.getElementById("feedback-text").innerText = "";
+            document.getElementById("next-button").style.display = "none";
+
+            // Crear opciones (la correcta + 3 aleatorias)
+            let options = [currentBrand.name];
+            while (options.length < 4) {
+                let randomBrand = brands[Math.floor(Math.random() * brands.length)].name;
+                if (!options.includes(randomBrand)) {
+                    options.push(randomBrand);
+                }
+            }
+            shuffle(options);
+
+            // Renderizar los botones de opción
+            const optionsBox = document.getElementById("options-box");
+            optionsBox.innerHTML = "";
+            options.forEach(option => {
+                const button = document.createElement("button");
+                button.className = "btn";
+                button.innerText = option;
+                button.onclick = () => checkAnswer(button, option, currentBrand.name);
+                optionsBox.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedButton, selectedOption, correctOption) {
+            const feedback = document.getElementById("feedback-text");
+            const buttons = document.querySelectorAll("#options-box .btn");
+            
+            // Deshabilitar todos los botones tras responder
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedOption === correctOption) {
+                feedback.innerText = "¡Correcto! ✨";
+                feedback.className = "feedback correct";
+                selectedButton.style.backgroundColor = "#4caf50";
+                selectedButton.style.borderColor = "#4caf50";
+                score++;
+            } else {
+                feedback.innerText = `Incorrecto. Era ${correctOption} ❌`;
+                feedback.className = "feedback incorrect";
+                selectedButton.style.backgroundColor = "#f44336";
+                selectedButton.style.borderColor = "#f44336";
+            }
+
+            document.getElementById("score").innerText = score;
+            currentIndex++;
+            document.getElementById("total").innerText = currentIndex;
+            document.getElementById("next-button").style.display = "block";
+        }
+
+        function nextQuestion() {
+            loadQuestion();
+        }
+
+        // Iniciar juego mezclando el orden de las marcas
+        shuffle(brands);
+        loadQuestion();
+    </script>
+</body>
+</html>
