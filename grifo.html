@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Primer Faucet de Prueba</title>
+    <!-- Estilos rápidos usando Tailwind CSS -->
+    <script src="https://jsdelivr.net"></script>
+    <!-- Librería Ethers.js para conectar con Blockchain -->
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body class="bg-slate-900 text-white flex flex-col items-center justify-center min-h-screen font-sans p-4">
+
+    <div class="bg-slate-800 p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-slate-700">
+        <h1 class="text-3xl font-bold mb-2 text-indigo-400">🚰 Faucet de Prueba</h1>
+        <p class="text-slate-400 text-sm mb-6">Reclama 0.01 ETH de prueba cada 24 horas</p>
+
+        <button id="connectBtn" class="w-full bg-indigo-600 hover:bg-indigo-500 font-semibold py-3 px-4 rounded-xl transition mb-4 cursor-pointer">
+            Conectar Billetera
+        </button>
+
+        <div id="faucetSection" class="hidden">
+            <p id="walletAddress" class="text-xs bg-slate-900 p-2 rounded-lg text-emerald-400 mb-4 font-mono break-all"></p>
+            <button id="requestBtn" class="w-full bg-emerald-600 hover:bg-emerald-500 font-semibold py-3 px-4 rounded-xl transition cursor-pointer">
+                Solicitar Tokens de Prueba
+            </button>
+        </div>
+
+        <p id="statusMessage" class="mt-4 text-sm font-medium text-amber-400"></p>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN: Reemplaza con tus datos de Remix
+        const contractAddress = "TU_DIRECCION_DE_CONTRATO_AQUI";
+        const contractABI = [
+            "function requestTokens() external",
+            "function getBalance() external view returns (uint256)"
+        ];
+
+        let provider, signer, faucetContract;
+
+        const connectBtn = document.getElementById('connectBtn');
+        const faucetSection = document.getElementById('faucetSection');
+        const walletAddress = document.getElementById('walletAddress');
+        const requestBtn = document.getElementById('requestBtn');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // 1. Conectar MetaMask
+        connectBtn.addEventListener('click', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    statusMessage.innerText = "Conectando...";
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+                    faucetContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                    walletAddress.innerText = `Conectado: ${accounts[0]}`;
+                    connectBtn.classList.add('hidden');
+                    faucetSection.classList.remove('hidden');
+                    statusMessage.innerText = "Billetera lista.";
+                } catch (error) {
+                    statusMessage.innerText = "Error al conectar la billetera.";
+                    console.error(error);
+                }
+            } else {
+                statusMessage.innerText = "Por favor, instala MetaMask.";
+            }
+        });
+
+        // 2. Solicitar Tokens
+        requestBtn.addEventListener('click', async () => {
+            try {
+                statusMessage.innerText = "Por favor, confirma la transacción en MetaMask...";
+                const tx = await faucetContract.requestTokens();
+                statusMessage.innerText = "Procesando transacción en la red...";
+                await tx.wait();
+                statusMessage.innerText = "¡Éxito! Los tokens de prueba han sido enviados.";
+            } catch (error) {
+                // Capturar errores comunes de Solidity (ej: tiempo de espera)
+                if(error.message.includes("Debes esperar")) {
+                    statusMessage.innerText = "Error: Ya reclamaste hoy. Espera 24 horas.";
+                } else {
+                    statusMessage.innerText = "La transacción falló o fue cancelada.";
+                }
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
