@@ -30,8 +30,8 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN: Reemplaza con tus datos de Remix
-        const contractAddress = "TU_DIRECCION_DE_CONTRATO_AQUI";
+        // CONFIGURACIÓN: Tu dirección de contrato integrada
+        const contractAddress = "0xE320E3A23B6FC57f09189aA07A325cB7eAb0215C";
         const contractABI = [
             "function requestTokens() external",
             "function getBalance() external view returns (uint256)"
@@ -79,8 +79,10 @@
                 statusMessage.innerText = "¡Éxito! Los tokens de prueba han sido enviados.";
             } catch (error) {
                 // Capturar errores comunes de Solidity (ej: tiempo de espera)
-                if(error.message.includes("Debes esperar")) {
+                if (error.message && error.message.includes("Debes esperar")) {
                     statusMessage.innerText = "Error: Ya reclamaste hoy. Espera 24 horas.";
+                } else if (error.message && error.message.includes("fondos")) {
+                    statusMessage.innerText = "Error: El Faucet se ha quedado sin fondos de prueba.";
                 } else {
                     statusMessage.innerText = "La transacción falló o fue cancelada.";
                 }
@@ -90,3 +92,4 @@
     </script>
 </body>
 </html>
+
