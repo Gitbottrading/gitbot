@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    :root { --primary: #00ffcc; --bg: #0b0e11; --card: #151a22; --text: #ffffff; --error: #ff5555; }
+    body { width: 320px; background: var(--bg); color: var(--text); font-family: sans-serif; padding: 15px; margin: 0; }
+    h2 { color: var(--primary); text-align: center; font-size: 1.2rem; margin-top: 5px; }
+    
+    /* Sistema de Navegación e Interfaces */
+    .tabs { display: flex; justify-content: space-around; margin-bottom: 15px; border-bottom: 1px solid #232d38; }
+    .tab-btn { background: none; border: none; color: #888; padding: 10px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+    .tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); }
+    
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .balance-box { background: var(--card); padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 15px; border: 1px solid #232d38; }
+    .input-group { margin-top: 12px; }
+    label { font-size: 0.8rem; color: #aaa; display: block; margin-bottom: 5px; }
+    input { width: 93%; background: #232d38; border: 1px solid #344456; color: white; padding: 8px; border-radius: 4px; font-size: 0.85rem; }
+    
+    button.main-btn { width: 100%; background: var(--primary); color: #000; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 10px; }
+    button.sec-btn { width: 100%; background: transparent; color: var(--primary); border: 1px solid var(--primary); padding: 8px; font-weight: bold; border-radius: 4px; cursor: pointer; margin-top: 8px; }
+    button:disabled { background: #555 !important; color: #aaa !important; cursor: not-allowed; }
+    
+    .secret-box { background: #1a1f26; padding: 10px; border-radius: 4px; word-break: break-all; font-family: monospace; font-size: 0.75rem; border: 1px dashed #344456; margin-top: 5px; color: var(--error); }
+    .status-text { font-size: 0.8rem; color: var(--primary); text-align: center; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h2>AUPO Wallet 🦊</h2>
+
+  <!-- VISTA 0: PANTALLA DE ACCESO / CIFRADO -->
+  <div id="viewAuth" class="view active">
+    <div class="balance-box" id="authBox">
+      <p id="authTitle" style="margin-top:0;">Crea una contraseña para tu billetera</p>
+      <div class="input-group" style="text-align: left;">
+        <input type="password" id="inputAuthPassword" placeholder="Introduce tu contraseña...">
+      </div>
+      <button id="btnAuthAction" class="main-btn">Crear Wallet</button>
+      <div id="authStatus" class="status-text"></div>
+    </div>
+  </div>
+
+  <!-- CONTENIDO DE LA WALLET (BLOQUEADO POR DEFECTO) -->
+  <div id="mainWalletContainer" style="display: none;">
+    <!-- Barra de Navegación -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tabWallet">Billetera</button>
+      <button class="tab-btn" id="tabSettings">⚙️ Ajustes</button>
+    </div>
+
+    <!-- VISTA 1: PRINCIPAL (WALLET) -->
+    <div id="viewWallet" class="view active">
+      <div class="balance-box">
+        <small>Mi Cuenta (EVM)</small>
+        <div id="address" style="font-size: 0.85rem; color:#888; font-family: monospace; margin: 5px 0;">0x...</div>
+        <h3 id="balance">0.0000 NATIVO</h3>
+      </div>
+      
+      <div class="input-group">
+        <label>Dirección del Contrato del Airdrop</label>
+        <input type="text" id="tokenContract" placeholder="0x...">
+        <button id="btnClaim" class="main-btn">Reclamar Airdrop (72h)</button>
+      </div>
+    </div>
+
+    <!-- VISTA 2: CONFIGURACIÓN / BACKUP -->
+    <div id="viewSettings" class="view">
+      <div class="input-group">
+        <label>Tu Clave Privada (¡NO LA COMPARTAS!):</label>
+        <button id="btnShowPrivate" class="sec-btn">👁️ Mostrar Clave Privada</button>
+        <div id="privateKeyContainer" class="secret-box" style="display: none;"></div>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #232d38; margin: 20px 0;">
+
+      <div class="input-group">
+        <label>Importar Cuenta Existente</label>
+        <input type="password" id="inputImportKey" placeholder="Pega tu clave privada aquí...">
+        <input type="password" id="inputImportPassword" placeholder="Asigna contraseña para esta clave..." style="margin-top:8px;">
+        <button id="btnImport" class="main-btn">Importar Billetera</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Librería criptográfica externa -->
+  <script src="ethers.umd.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
